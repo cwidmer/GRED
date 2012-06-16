@@ -1,0 +1,46 @@
+===
+WISHES From Steffi:
+
+1) Kannst du da auch einen Schieber hinzufügen, mit dem ich unabhängig vom roten Kanal die Intensität ändern kann.
+
+2) könntest du den roten Kanal zusätzlich abbilden in rot oder greyscale, mit auch einem Schieber? Ich würde mir den roten Kanal gern unabhängig von tracking anschauen, weil ich ungern im Histogramm den Wert ändern möchte, der fürs Tracken benutzt wurde.
+
+2) ich bin mir immer noch nicht so sicher wie 'gut' ich den threshold einstelle - meistens passt das gut mit dem Startwert beim Laden der Bilder, aber manchmal muss ich doch arg rumprobieren. Das liegt vor allem daran, dass outlier, die definitiv nicht zum Nukleus gehören, immer noch das Tracking beeinflussen. Hast du dir da zufällig schon etwas überlegt, wie man alle Datenpunkte, die weiter als eine bestimmte Anzahl von Pixeln vom Centriod entfernt sind, nicht beachtet?
+
+Da fällt mir nochwas ein: würde es per se einfach einzubauen sein, dass man auch andere Pixelgrößen trackt? Ich arbeite ja momentan mit 
+,3die die Pixellänge von 0.2151 µm verursacht. Wir haben aber auch Aufnahmen, die wir nur mit 1x1 binning machen (dann reduziert sich die Pixelgröße auf 0.1075 µm). Kann man noch ein extra Dialogfenster einfügen, in dem man die Pixelgröße einträgt, wenn man nicht mit 2x2 binning, sondern 1x1 binning arbeitet? Wäre etwas unter Punkt 7 (fancy extras) :-)
+
+===
+TODOS
+
+- fix abs fit:
+  - besserer startwert
+  - is problem convex??
+  - methode aufschreiben
+
+3) 
+Wäre es evtl. auch noch möglich im Histogramm nicht nur einen Schieber zu haben, sondern auch ein Feld in dem man ggf. die Zahl des Schwellenwerts manuell eingeben kann? Das würde es erleichtern, wenn man verschiedene Schwellenwerte testet, den am besten passenden direkt einzugeben statt mit dem Slider mühsam den Wert wiederzufinden.
+
+
+
+===
+DONE:
+
+3) Wann glaubst du kann ich auch Dateien exportieren? Und wann kann ich den gesamten Datensatz (inklusive threshold im Histogramm etc.) speichern?
+
+Außerdem ist mir bei der Analyse noch eingefallen, dass in der Tabelle final auf jeden Fall der Radiuswert sowie der Threshold im Histogramm auftauchen sollte. Könntest du das noch einfügen?
+
+0. einfügen in tabelle: radius, histogram, intensität und fläche für jede ebene
+
+1. export
+
+4) Wenn ich/wir rausgefunden haben warum der Pixelwert so anders ist, kannst du das in der Evaluation ändern in um2 statt Pixel?
+
+Ach ja, kannst du evtl. aus dem Menü auf der rechten Seite die verschiedenen Fits als 'drop-down' Menü machen (o.ä.)? Mich nervt es momentan etwas, dass ich mich immer wieder 'verklicke' (statt Ellipse(square) z.B. Ellipse(abs)).  :-)
+
+1) ich hatte jetzt ziemliche Probleme mit dem Ellipse(abs)-Fit - es hat ewig gedauert (im Vergleich zu Ellipse(squared)) und es kamen immer sehr seltsame Tracks raus. Wollen wir das überhaupt noch nutzen? Oder willst du dir nochmal anschauen wo das Problem liegen könnte?
+
+Mir ist noch etwas eingefallen, was unbedingt in die Tabelle muss(auch wenn es dadurch etwas größer wird): ich bräuchte die Werte für Intensität und Fläche für jede Ebene (weil ich später noch Korrekturen vornehmen muss, da es einen Intensitätsverlust in 3D gibt). 
+
+Kannst du mir außerdem nochmal sagen, wie du den Radius-Faktor berechnest? Wären da auch andere Intervalle möglich?
+
