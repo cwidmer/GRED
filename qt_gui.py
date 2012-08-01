@@ -470,12 +470,12 @@ class TableWidget(QtGui.QTableWidget):
 
             print "current row", row
 
-            self.item(row, 1).setText(str(dataset.radius_offset))
-            self.item(row, 2).setText(str(dataset.threshold))
-            self.item(row, 3).setText(str(evaluation.total_num_pixels))
-            self.item(row, 4).setText(str(evaluation.total_area_in_micro_m))
-            self.item(row, 5).setText(str(evaluation.total_intensity))
-            self.item(row, 6).setText(str(evaluation.total_intensity_per_area))
+            self.item(row, 1).setText("%.2f" % dataset.radius_offset)
+            self.item(row, 2).setText("%.2f" % dataset.threshold)
+            self.item(row, 3).setText("%d"   % evaluation.total_num_pixels)
+            self.item(row, 4).setText("%.2f" % evaluation.total_area_in_micro_m)
+            self.item(row, 5).setText("%.2f" % evaluation.total_intensity)
+            self.item(row, 6).setText("%.2f" % evaluation.total_intensity_per_area)
 
 
 class MainWidget(QtGui.QTreeWidget):
