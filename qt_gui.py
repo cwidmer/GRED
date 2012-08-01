@@ -840,6 +840,7 @@ class Dataset(object):
 
         # set threshold to some high percentile by default
         self.threshold = scipy.stats.scoreatpercentile(self.red_channel.flatten(), 93)
+
         self.volume_to_points()
 
         return self
@@ -931,14 +932,14 @@ class Dataset(object):
 
         print "shape green channel", self.green_channel.shape
 
-        intensity = 0
-        num_pixels = 0
-
         assert isinstance(self.stack, dict), "type check failed"
 
         self.evaluation = EvaluationData()
 
         for (z, e) in self.stack.items():
+
+            intensity = 0
+            num_pixels = 0
 
             assert z == e.cz
             img = self.green_channel[:,:,z]
