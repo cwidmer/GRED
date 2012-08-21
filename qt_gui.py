@@ -429,7 +429,7 @@ class TableWidget(QtGui.QTableWidget):
         appends dat to dataset and adds new table item
         """
 
-        fn = dat.split("/")[-1]
+        fn = dat.split(os.sep)[-1]
 
         item = QtGui.QTableWidgetItem(fn)
         item.dataset = dat
@@ -668,14 +668,19 @@ class MainWidget(QtGui.QTreeWidget):
         """
         
         dialog = QtGui.QFileDialog()
-        dialog.setFileMode(QtGui.QFileDialog.AnyFile)
-        file_name = str(dialog.getSaveFileName(self, 'Export data to file', "export.csv", ""))
+        #dialog.setFileMode(QtGui.QFileDialog.ShowDirsOnly)
+        dir_name = str(dialog.getExistingDirectory(self, 'Select Directory'))
+
+        file_name = dir_name + os.sep + "export.csv" 
 
         f = file(file_name, "w")
-        f.write("file name, radius, threshold, num pixels, area (micro m^2), total intensity, intensity per area")
+        f.write("file name, radius, threshold, num pixels, area (micro m^2), total intensity, intensity per area\n")
 
         for dataset_path, dataset in self.datasets.items():
-            line = dataset_path + ", "
+
+            dat_name = dataset_path.split(os.sep)[-1]
+
+            line = dat_name + ", "
             line += str(dataset.radius_offset) + ", "
             line += str(dataset.threshold) + ", "
 
@@ -685,12 +690,20 @@ class MainWidget(QtGui.QTreeWidget):
                 line += str(dataset.evaluation.total_intensity) + ", "
                 line += str(dataset.evaluation.total_intensity_per_area)
 
+                # write separate file
+                inner_file_name = dir_name + os.sep + dat_name + ".csv"
+                inner_f = file(inner_file_name, "w")
+                inner_f.write("layer_id, area_micro_m, intensity\n")
+                print "writing file", inner_file_name
+ 
                 for layer in xrange(dataset.evaluation.num_layers):
-                    line += ", area_%i=%f" % (layer, dataset.evaluation.layer_area_in_micro_m[layer])
-                    line += ", intensity_%i=%f" % (layer, dataset.evaluation.layer_intensity[layer])
+                    area = dataset.evaluation.layer_area_in_micro_m[layer]
+                    intensity = dataset.evaluation.layer_intensity[layer]
+                    inner_f.write("%i, %f, %f\n" % (layer, area, intensity))
+
+                inner_f.close()
 
             line += "\n"
-
             f.write(line)
 
         f.close()
