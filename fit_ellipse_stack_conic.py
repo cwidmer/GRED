@@ -720,6 +720,7 @@ def fit_ellipse_stack_abs(dx, dy, dz, di):
     for i in xrange(M-1):
         objective += reg_const * cvxmod.norm1(thetas[i] - thetas[i+1])
 
+    objective += 100*cvxmod.norm1(thetas[0])
     #print objective
 
     # create problem                                    

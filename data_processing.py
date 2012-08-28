@@ -24,14 +24,16 @@ def get_data_example():
     get some dataset
     """
 
-    tif_dir = "/fml/ag-raetsch/home/sumrania/Desktop/forChris_Philipp/20091026_SK570_578_4.5um_1_R3D_CAL_01_D3D_CPY_Cut9/"
+    tif_dir = "data/data/20091026_SK570_578_4.5um_1_R3D_CAL_01_D3D_CPY_Cut9/"
     target = "w617"
     threshold = 255
     vol = load_tif(tif_dir, target)
-    
-    dx, dy, dz, di, vol = threshold_volume(vol, threshold)
 
-    return numpy.array(dx), numpy.array(dy), numpy.array(dz), numpy.array(di)
+    return vol
+    
+    #dx, dy, dz, di, vol = threshold_volume(vol, threshold)
+
+    #return numpy.array(dx), numpy.array(dy), numpy.array(dz), numpy.array(di)
 
 
 def image2array(im):
