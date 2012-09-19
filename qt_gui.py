@@ -678,7 +678,8 @@ class MainWidget(QtGui.QTreeWidget):
 
         for dataset_path, dataset in self.datasets.items():
 
-            dat_name = dataset_path.split(os.sep)[-1]
+            #dat_name = dataset_path.split(os.sep)[-1]
+            dat_name = dataset_path.split("/")[-1]
 
             line = dat_name + ", "
             line += str(dataset.radius_offset) + ", "
@@ -691,7 +692,8 @@ class MainWidget(QtGui.QTreeWidget):
                 line += str(dataset.evaluation.total_intensity_per_area)
 
                 # write separate file
-                inner_file_name = dir_name + os.sep + dat_name + ".csv"
+                #inner_file_name = dir_name + os.sep + dat_name + ".csv"
+                inner_file_name = dir_name + "/" + dat_name + ".csv"
                 inner_f = file(inner_file_name, "w")
                 inner_f.write("layer_id, area_micro_m, intensity\n")
                 print "writing file", inner_file_name
