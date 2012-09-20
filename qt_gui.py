@@ -429,7 +429,8 @@ class TableWidget(QtGui.QTableWidget):
         appends dat to dataset and adds new table item
         """
 
-        fn = dat.split(os.sep)[-1]
+        #fn = dat.split(os.sep)[-1]
+        fn = dat.split("/")[-1]
 
         item = QtGui.QTableWidgetItem(fn)
         item.dataset = dat
@@ -673,7 +674,7 @@ class MainWidget(QtGui.QTreeWidget):
         #dialog.setFileMode(QtGui.QFileDialog.ShowDirsOnly)
         dir_name = str(dialog.getExistingDirectory(self, 'Select Directory'))
 
-        file_name = dir_name + os.sep + "export.csv" 
+        file_name = dir_name + "/" + "export.csv" 
 
         f = file(file_name, "w")
         f.write("file name, radius, threshold, num pixels, area (micro m^2), total intensity, intensity per area\n")
