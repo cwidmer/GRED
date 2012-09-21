@@ -429,7 +429,8 @@ class TableWidget(QtGui.QTableWidget):
         appends dat to dataset and adds new table item
         """
 
-        fn = dat.split(os.sep)[-1]
+        #fn = dat.split(os.sep)[-1]
+        fn = dat.split("/")[-1]
 
         item = QtGui.QTableWidgetItem(fn)
         item.dataset = dat
@@ -565,12 +566,14 @@ class MainWidget(QtGui.QTreeWidget):
         appends all directories in super_dir
         """
 
+        # path will come with forward slashes from PyQT
         super_dir = str(super_dir)
 
-        directories = [os.path.join(super_dir,dat) for dat in os.listdir(super_dir) if os.path.isdir(os.path.join(super_dir,dat))]
+        directories = [super_dir + "/" + dat for dat in os.listdir(super_dir) if os.path.isdir(super_dir + "/" + dat)]
         directories.sort()
 
         for dat in directories:
+            #TODO check if tiffs are present
             self.add_dataset(dat)      
 
 
@@ -671,7 +674,7 @@ class MainWidget(QtGui.QTreeWidget):
         #dialog.setFileMode(QtGui.QFileDialog.ShowDirsOnly)
         dir_name = str(dialog.getExistingDirectory(self, 'Select Directory'))
 
-        file_name = dir_name + os.sep + "export.csv" 
+        file_name = dir_name + "/" + "export.csv" 
 
         f = file(file_name, "w")
         f.write("file name, radius, threshold, num pixels, area (micro m^2), total intensity, intensity per area\n")
@@ -747,7 +750,7 @@ class MainWidget(QtGui.QTreeWidget):
         if not file_name == "":
             try:
                 f = file(file_name)
-                self.datasets = cPickle.load(f)
+                self.datasets = fix_legacy_paths(cPickle.load(f))
 
                 for tif_dir, dataset in self.datasets.items():
                      self.emit(QtCore.SIGNAL('newKey(PyQt_PyObject)'), tif_dir)
@@ -762,6 +765,23 @@ class MainWidget(QtGui.QTreeWidget):
 
             print "successfully loaded project from", file_name
 
+
+def fix_legacy_paths(dataset):
+    """
+    removes backslashes from file names
+    """
+
+    new_dat = {}
+
+    for key, dat in dataset.items():
+        
+        if "\\" in key:
+            print "replacing \\ with / in", key
+            new_key = key.replace("\\","/")
+            new_dat[new_key] = dat
+
+    return new_dat
+ 
 
 # define class Data
 Data = namedtuple("Data", ["x", "y", "z", "i"])
