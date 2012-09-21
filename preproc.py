@@ -6,9 +6,10 @@ import pylab
 def load_data2D():
     #readImage(filename, dtype = 'FLOAT', index = 0, order='') -> Image
     #TODO read tiff files
-    tif_dir = "data/data/20091026_SK570_578_4.5um_1_R3D_CAL_01_D3D_CPY_Cut9/"
-    tif_file = "20091026_SK570_578_4.5um_1_R3D_CAL_01_D3D_CPY_Cut9_w617_z02.tif"
-
+    #tif_dir = "data/data/20091026_SK570_578_4.5um_1_R3D_CAL_01_D3D_CPY_Cut9/"
+    #tif_file = "20091026_SK570_578_4.5um_1_R3D_CAL_01_D3D_CPY_Cut9_w617_z02.tif"a
+    tif_dir = "data/whole_volume/20091026_SK570_590_4.5um_13_R3D_CAL_01_D3D/"
+    tif_file = "20091026_SK570_590_4.5um_13_R3D_CAL_01_D3D_w617_z20.tif"
     data = vigra.impex.readImage(tif_dir + tif_file)
 
     print type(data)
@@ -49,7 +50,7 @@ def extract():
     #data = vigra.ScalarVolume((width, height, depth))
     #TODO: get 3D data into right format
    
-    scales = numpy.linspace(1, 4, 4)
+    scales = numpy.linspace(3, 10, 4)
     closing = True
     opening = False
     window = 3
@@ -99,13 +100,14 @@ def extract():
         plot_image(seeds, title="seeds")
 
         #seed_img = vigra.ScalarImage(seeds)
-        seed_img = numpy.array(seeds, dtype=numpy.float32)
+        #seed_img = numpy.array(seeds, dtype=numpy.float32)
+        seed_img = numpy.array(seeds, dtype=numpy.uint8)
         #vigra.ScalarVolume((30,30,30))
 
-        closed = vigra.filters.discClosing(seed_img, 3)
+        closed = vigra.filters.discClosing(seed_img, 2)
         plot_image(closed, title="closed seed")
 
-        dilated = vigra.filters.discDilation(closed, 4)
+        dilated = vigra.filters.discDilation(closed, 2)
         plot_image(dilated, title="dilated seed")
 
     #igra.filters.discClosing()
