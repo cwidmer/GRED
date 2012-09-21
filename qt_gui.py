@@ -750,7 +750,7 @@ class MainWidget(QtGui.QTreeWidget):
         if not file_name == "":
             try:
                 f = file(file_name)
-                self.datasets = cPickle.load(f)
+                self.datasets = fix_legacy_paths(cPickle.load(f))
 
                 for tif_dir, dataset in self.datasets.items():
                      self.emit(QtCore.SIGNAL('newKey(PyQt_PyObject)'), tif_dir)
@@ -765,6 +765,23 @@ class MainWidget(QtGui.QTreeWidget):
 
             print "successfully loaded project from", file_name
 
+
+def fix_legacy_paths(dataset):
+    """
+    removes backslashes from file names
+    """
+
+    new_dat = {}
+
+    for key, dat in dataset.items():
+        
+        if "\\" in key:
+            print "replacing \\ with / in", key
+            new_key = key.replace("\\","/")
+            new_dat[new_key] = dat
+
+    return new_dat
+ 
 
 # define class Data
 Data = namedtuple("Data", ["x", "y", "z", "i"])
