@@ -121,7 +121,7 @@ def extract():
         plot_image_show(dilated, title="dilated seed")
 
         # heart piece
-        detect_boxes(dilated)
+        detect_boxes(data, dilated)
 
         pylab.figure()
         plot_image(data, title="seg vs real", alpha=0.5)
@@ -139,7 +139,7 @@ def extract():
     #vigra.analysis.labelImage()
 
 
-def detect_boxes(image):
+def detect_boxes(raw_data, image):
     """
     routine to automatically detect boxes in segmented image
     """
@@ -148,27 +148,41 @@ def detect_boxes(image):
     plot_image_show(labels, title="labels")
 
     a = numpy.array(labels)
-    unique = range(1, numpy.max(a))
+    unique = range(2, numpy.max(a))
 
     pylab.figure()
-    plot_image(labels, title="labels")
+    #plot_image(labels == idx, title="labels")
+    plot_image(raw_data, title="labels")
+
 
     for idx in unique:
-        px, py = numpy.where(a == idx)
+
+        py, px = numpy.where(a == idx)
 
         x_left = min(px)
         x_right = max(px)
-        y_top = max(a.shape[1] - py)
-        y_bot = min(a.shape[1] - py)
- 
+        y_top = max(py)
+        y_bot = min(py)
+
+        print "idx", idx
+        print "x_l, x_r", x_left, x_right
+        print "y_t, y_b", y_top, y_bot
+        print ""
+
+
+        #pointListX = [10, 20, 20, 10]
+        #pointListY = [10, 10, 20, 20]
+
+
         pointListX = [x_left,x_right,x_right,x_left]
         pointListY = [y_bot,y_bot,y_top,y_top]
-        xyList = zip(pointListX, pointListY)
-        p = Polygon( xyList, alpha=0.2 )
-        pylab.gca().add_artist(p)
+        #xyList = zip(pointListX, pointListY)
+        #p = Polygon( xyList, alpha=0.2 )
+        #pylab.gca().add_artist(p)
+
+        pylab.fill(pointListX, pointListY, 'r', alpha=0.4, edgecolor='r')
 
         #
-        #pylab.fill(pointListX, pointListY, 'r', alpha=0.2, edgecolor='r')
         #pylab.axvline(x=x_left, ymin=y_top, ymax=y_bot)
         #pylab.axvline(x=x_right, ymin=y_top, ymax=y_bot)
         #pylab.axhline(y=y_top, xmin=x_left, xmax=x_right)
