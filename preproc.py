@@ -17,20 +17,28 @@ def load_data2D():
     return data
 
 
-def plot_image(data, title=""):
+def plot_image_show(data, title=""):
+
+    pylab.figure()
+
+    plot_image(data, title)
+    pylab.title(title)
+
+    pylab.show()
+
+
+def plot_image(data, title="", alpha=1.0):
     """
     plot 2d image (work around numpy-vigra compatability problem)
     """
-    pylab.figure()
+
     tmp_array = numpy.zeros(data.shape)
 
     for i in xrange(data.shape[0]):
         for j in xrange(data.shape[1]):
             tmp_array[i,j] = data[i,j]
 
-    pylab.imshow(tmp_array, interpolation="nearest")
-    pylab.title(title)
-    pylab.show()
+    pylab.imshow(tmp_array, interpolation="nearest", alpha=alpha)
 
 
 def extract():
@@ -50,7 +58,8 @@ def extract():
     #data = vigra.ScalarVolume((width, height, depth))
     #TODO: get 3D data into right format
    
-    scales = numpy.linspace(3, 10, 4)
+    #scales = numpy.linspace(3, 15, 4)
+    scales = numpy.array([5.0])
     closing = True
     opening = False
     window = 3
@@ -63,7 +72,7 @@ def extract():
 
     #seeds = arg(varargin, mstring('init'), true(size(data)))
     seeds = numpy.ones(data.shape)
-    plot_image(data, title="raw image")
+    plot_image_show(data, title="raw image")
 
 
     for scale in scales:
@@ -74,18 +83,18 @@ def extract():
 
         # smooth image at this scale
         tmp = vigra.filters.gaussianSmoothing(data, scale)
-        plot_image(tmp, title="smoothed Gaussian")
+        plot_image_show(tmp, title="smoothed Gaussian")
 
         # compute eigenvalues
         #eigenValues = vigra.filters.eigenValueOfHessianMatrix(tmp, sigma, 0.9 * numpy.array([1, 1, 1]), mask, seeds)
         #hessian = vigra.filters.hessianOfGaussianEigenvalues(tmp, tmp_sigma)#, sigma_d=0.0, step_size=1.0, window_size=0.0, roi=None)
 
         hessian = vigra.filters.hessianOfGaussian2D(tmp, 0.4) #, tmp_sigma)#, sigma_d=0.0, step_size=1.0, window_size=0.0, roi=None)
-        plot_image(hessian, title="hessian")
+        plot_image_show(hessian, title="hessian")
 
         ev = vigra.filters.tensorEigenvalues(hessian)
-        plot_image(ev[:,:,0], title="eigenvalue 0")
-        plot_image(ev[:,:,1], title="eigenvalue 1")
+        plot_image_show(ev[:,:,0], title="eigenvalue 0")
+        plot_image_show(ev[:,:,1], title="eigenvalue 1")
 
         # combine eigenvalue indicators: xor
         if data.ndim == 3:
@@ -97,7 +106,7 @@ def extract():
             seeds = numpy.logical_and(seeds, ev[:,:,1] < thresholds[1])
 
         
-        plot_image(seeds, title="seeds")
+        plot_image_show(seeds, title="seeds")
 
         #seed_img = vigra.ScalarImage(seeds)
         #seed_img = numpy.array(seeds, dtype=numpy.float32)
@@ -105,10 +114,20 @@ def extract():
         #vigra.ScalarVolume((30,30,30))
 
         closed = vigra.filters.discClosing(seed_img, 2)
-        plot_image(closed, title="closed seed")
+        plot_image_show(closed, title="closed seed")
 
         dilated = vigra.filters.discDilation(closed, 2)
-        plot_image(dilated, title="dilated seed")
+        plot_image_show(dilated, title="dilated seed")
+
+        labels = vigra.analysis.labelImage(dilated)
+        plot_image_show(labels, title="labels")
+
+        pylab.figure()
+        plot_image(data, title="seg vs real", alpha=0.5)
+        plot_image(dilated, title="seg vs real", alpha=0.5)
+        pylab.show()
+
+
 
     #igra.filters.discClosing()
     #http//hci.iwr.uni-heidelberg.de/vigra/doc/vigranumpy/index.html?highlight=dilate
