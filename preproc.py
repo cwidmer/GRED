@@ -1,6 +1,7 @@
 import vigra.filters
 import numpy
 import pylab
+from matplotlib.patches import Polygon
 
 
 def load_data2D():
@@ -119,8 +120,8 @@ def extract():
         dilated = vigra.filters.discDilation(closed, 2)
         plot_image_show(dilated, title="dilated seed")
 
-        labels = vigra.analysis.labelImage(dilated)
-        plot_image_show(labels, title="labels")
+        # heart piece
+        detect_boxes(dilated)
 
         pylab.figure()
         plot_image(data, title="seg vs real", alpha=0.5)
@@ -136,6 +137,46 @@ def extract():
 
     #vigra.analysis.labelVolume()
     #vigra.analysis.labelImage()
+
+
+def detect_boxes(image):
+    """
+    routine to automatically detect boxes in segmented image
+    """
+
+    labels = vigra.analysis.labelImage(image)
+    plot_image_show(labels, title="labels")
+
+    a = numpy.array(labels)
+    unique = range(1, numpy.max(a))
+
+    pylab.figure()
+    plot_image(labels, title="labels")
+
+    for idx in unique:
+        px, py = numpy.where(a == idx)
+
+        x_left = min(px)
+        x_right = max(px)
+        y_top = max(a.shape[1] - py)
+        y_bot = min(a.shape[1] - py)
+ 
+        pointListX = [x_left,x_right,x_right,x_left]
+        pointListY = [y_bot,y_bot,y_top,y_top]
+        xyList = zip(pointListX, pointListY)
+        p = Polygon( xyList, alpha=0.2 )
+        pylab.gca().add_artist(p)
+
+        #
+        #pylab.fill(pointListX, pointListY, 'r', alpha=0.2, edgecolor='r')
+        #pylab.axvline(x=x_left, ymin=y_top, ymax=y_bot)
+        #pylab.axvline(x=x_right, ymin=y_top, ymax=y_bot)
+        #pylab.axhline(y=y_top, xmin=x_left, xmax=x_right)
+        #pylab.axhline(y=y_bot, xmin=x_left, xmax=x_right)
+
+    pylab.show()
+
+
 
 if __name__ == "__main__":
     extract()
