@@ -61,10 +61,10 @@
        </size>
       </property>
       <property name="maximum">
-       <double>256.000000000000000</double>
+       <double>2000.000000000000000</double>
       </property>
       <property name="value">
-       <double>250.000000000000000</double>
+       <double>350.000000000000000</double>
       </property>
      </widget>
     </item>
@@ -83,7 +83,7 @@
      </widget>
     </item>
     <item row="2" column="1">
-     <widget class="QDoubleSpinBox" name="radius">
+     <widget class="QDoubleSpinBox" name="radius_offset">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
         <horstretch>0</horstretch>

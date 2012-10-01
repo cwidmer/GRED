@@ -45,6 +45,7 @@ from fit_sphere import fit_sphere_stack
 from data_processing import artificial_data, load_tif, threshold_volume #, generate_sphere_full
 from volume_slicer_simple import SimpleSlicerQWidget
 from histogram_widget import HistogramQWidget
+from batch_dialog import BatchDialog
 
 
 
@@ -403,6 +404,7 @@ class TableWidget(QtGui.QTableWidget):
         super(TableWidget, self).__init__()
 
         self.datasets = []
+        self.id_to_row = {}
         self.initUI()
 
         # provide clean interface to outside world
@@ -428,12 +430,16 @@ class TableWidget(QtGui.QTableWidget):
         appends dat to dataset and adds new table item
         """
 
-        #fn = dat.split(os.sep)[-1]
+        print "XXX adding", dat
+
         fn = dat.split("/")[-1]
 
         item = QtGui.QTableWidgetItem(fn)
         item.dataset = dat
         row = self.rowCount()
+
+        # save mapping
+        self.id_to_row[dat] = row
 
         self.insertRow(row)
         self.setItem(row, 0, item)
@@ -466,7 +472,7 @@ class TableWidget(QtGui.QTableWidget):
 
         if evaluation:
 
-            row = self.currentRow()
+            row = self.id_to_row[dataset.tif_dir]
 
             print "current row", row
 
@@ -773,15 +779,39 @@ class MainWidget(QtGui.QTreeWidget):
 
     def batch(self):
         """
-        emits signal that indicates that the currently active dataset was changed
+        performs batch processing with settings from batch_dialog
         """
 
-        from batch_dialog import BatchDialog
         dlg = BatchDialog()
         if dlg.exec_():
             values = dlg.getValues()
-            # Do stuff with values 
-            print values
+
+            print "batch processing %i files" % (len(self.datasets))
+            print "parameters:", values
+            
+            for key, d in self.datasets.items():
+
+                print "batch processing", key
+
+                try:
+                    # do actual processing
+                    d.update_threshold(values["threshold"])
+                    d.fit_stack(values["method"])
+
+                    # update plots
+                    self.active_dataset = d
+                    self.emit(QtCore.SIGNAL('activeDatasetChanged(PyQt_PyObject)'), self.active_dataset)
+
+                    self.active_dataset.update_radius_offset(values["radius_offset"])
+                    self.active_dataset.evaluate()
+        
+                    # update eval
+                    self.emit(QtCore.SIGNAL('activeDatasetEvaluated(PyQt_PyObject)'), self.active_dataset)
+
+                except Exception, detail:
+                    print "problem encountered when when analyzing", key
+
+            print "batch processing done."
 
 
 def fix_legacy_paths(dataset):

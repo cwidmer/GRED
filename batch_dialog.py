@@ -37,10 +37,13 @@ class BatchDialog(QtGui.QDialog):
         wraps up return values as dictionary
         """
 
+        # naming has to agree with method "fit_stack" in qt_gui.py
+        method_idx_to_name = ["squared", "eps", "circle"]
+
         values = {}
-        values["radius"] = self.radius.value()
+        values["radius_offset"] = self.radius_offset.value()
         values["threshold"] = self.threshold.value()
-        values["method_index"] = self.method.currentIndex()
+        values["method"] = method_idx_to_name[self.method.currentIndex()]
 
         return values
 
