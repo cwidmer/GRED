@@ -1,6 +1,19 @@
 ===
 WISHES From Steffi:
 
+
+- Generell hab ich mal wieder festgestellt, dass der fit(squared) bessere Fits gegeben hat als der fit(abs). Und mit dem Schwellenwert, der momentan automatisch bei Laden jedes Nukleus eingestellt wird, passt der Fit mit fit(squared) meist auch direkt, d.h. ein automatisiertes batch processing sollte gut möglich sein. Kannst du sowas noch implementieren? (z.B. das man festlegt welche Fitmethode, welcher Radius und welcher Schwellenwert genommen wird und dann der batch komplett durchanalysiert wird?)
+
+- es wäre immer noch toll, wenn outlier-Punkte, die definitiv nicht zum zu analysierenden Nukleus gehören, nicht mit in die Analyse einbezogen werden. Ich hatte jetzt ein paar Zellen, wo ein benachbarter Nukleus das Tracking unmöglich gemacht hat. Es wäre deshalb immer noch toll, wenn man in solchen Fällen z.B. das Zentrum des Nukleus definieren könnte und alle Datenpunkte außerhalb eines Radius xy ignoriert werden.
+
+- was mich jetzt bei der Analyse gestört hat, war die Tatsache, dass ich immer wieder neu die Radiuskorrektur einstellen musste, d.h. selbst wenn noch von der vorherigen Analyse z.B. eine Radiuskorrektur von +0.80 eingestellt war, wurde das nicht automatisch bei der Evaluation des neuen Nukleus als Berechnungsgrundlage genutzt, sondern wieder von einem Wert von 0.00 ausgegangen (ohne, dass man das sehen konnte). Das macht es dann etwas nervig, wenn man den Radius erst wieder durch hoch- und runterklicken einstellen muss. Besser fände ich, wenn man entweder 1) einen 'apply'-Button neben dem Radiusfeld hätte, mit dem man durch einmaliges Klicken den angegebenen Radius bestätigt oder 2) der Radius direkt übernommen wird vom vorherigen Nukleus und man nur durch aktives Ändern einen anderen Wert einstellt oder 3) der Radiuswert bei jedem neu geöffneten Nukleus auf 0.00 zurückgestellt wird (dann muss man zwar immer neu klicken, aber zumindest stimmen dann Anzeige mit tatsächlich berechnetem Wert überein).
+
+- noch zwei kleine Dinge: 
+  1) es wäre toll, wenn ich den Regler beim Histogramm noch etwas besser bedienen könnte (z.B. den Schwellenwert direkt als Zahl angezeigt wird, die ich dann z.B. durch Eintippen einer neuen Zahl verändern kann). Momentan ist das bei mir eher wildes Rumgeklicke, um einen Wert zu treffen :-)
+2) Gäbe es eine Möglichkeit die Skalierung des grünen Kanals (also die 528-Bilder) aktiv ändern zu können? Durch die automatische Skalierung sieht man manchmal die Signale nicht wirklich gut. Würde aber bei mir ganz unten auf der Wunschliste stehen :-)
+
+Kann man den Programm sagen, dass es Ordner, die offensichtlich keine TIFF-Dateien enthalten, einfach skippt?
+
 1) Kannst du da auch einen Schieber hinzufügen, mit dem ich unabhängig vom roten Kanal die Intensität ändern kann.
 
 2) könntest du den roten Kanal zusätzlich abbilden in rot oder greyscale, mit auch einem Schieber? Ich würde mir den roten Kanal gern unabhängig von tracking anschauen, weil ich ungern im Histogramm den Wert ändern möchte, der fürs Tracken benutzt wurde.
@@ -9,6 +22,8 @@ WISHES From Steffi:
 
 Da fällt mir nochwas ein: würde es per se einfach einzubauen sein, dass man auch andere Pixelgrößen trackt? Ich arbeite ja momentan mit 
 ,3die die Pixellänge von 0.2151 µm verursacht. Wir haben aber auch Aufnahmen, die wir nur mit 1x1 binning machen (dann reduziert sich die Pixelgröße auf 0.1075 µm). Kann man noch ein extra Dialogfenster einfügen, in dem man die Pixelgröße einträgt, wenn man nicht mit 2x2 binning, sondern 1x1 binning arbeitet? Wäre etwas unter Punkt 7 (fancy extras) :-)
+
+
 
 ===
 TODOS

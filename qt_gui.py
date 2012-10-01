@@ -353,9 +353,9 @@ class ControlWidget(QtGui.QWidget):
         self.button_fit_sphere_stack.setFocusPolicy(QtCore.Qt.NoFocus)
         self.layout.addWidget(self.button_fit_sphere_stack)
 
-        #self.button_batch = QtGui.QPushButton('Batch process', self)
-        #self.button_batch.setFocusPolicy(QtCore.Qt.NoFocus)
-        #self.layout.addWidget(self.button_batch)
+        self.button_batch = QtGui.QPushButton('Batch process', self)
+        self.button_batch.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.layout.addWidget(self.button_batch)
 
         self.button_eval = QtGui.QPushButton('Evaluate', self)
         self.button_eval.setFocusPolicy(QtCore.Qt.NoFocus)
@@ -547,6 +547,7 @@ class MainWidget(QtGui.QTreeWidget):
         self.connect(control_widget.button_load, QtCore.SIGNAL('clicked()'), self.load)
         self.connect(control_widget.button_eval, QtCore.SIGNAL('clicked()'), self.evaluate)
         self.connect(control_widget.button_export, QtCore.SIGNAL('clicked()'), self.export)
+        self.connect(control_widget.button_batch, QtCore.SIGNAL('clicked()'), self.batch)
         self.connect(control_widget.button_save, QtCore.SIGNAL('clicked()'), self.save)
         self.connect(control_widget.spin_radius, QtCore.SIGNAL('valueChanged(double)'), self.update_radius_offset)
         self.connect(control_widget, QtCore.SIGNAL('superDirectoryChanged(PyQt_PyObject)'), self.add_all_datasets)
@@ -768,6 +769,19 @@ class MainWidget(QtGui.QTreeWidget):
                 print detail
 
             print "successfully loaded project from", file_name
+
+
+    def batch(self):
+        """
+        emits signal that indicates that the currently active dataset was changed
+        """
+
+        from batch_dialog import BatchDialog
+        dlg = BatchDialog()
+        if dlg.exec_():
+            values = dlg.getValues()
+            # Do stuff with values 
+            print values
 
 
 def fix_legacy_paths(dataset):
