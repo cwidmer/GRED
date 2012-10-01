@@ -4,8 +4,8 @@
 # the Free Software Foundation; either version 3 of the License, or
 # (at your option) any later version.
 #
-# Written (W) 2011 Christian Widmer
-# Copyright (C) 2011 Max-Planck-Society
+# Written (W) 2011-2012 Christian Widmer
+# Copyright (C) 2011-2012 Max-Planck-Society
 
 """
 @author: Christian Widmer
@@ -345,7 +345,6 @@ class ControlWidget(QtGui.QWidget):
         self.button_fit_stack.setFocusPolicy(QtCore.Qt.NoFocus)
         self.layout.addWidget(self.button_fit_stack)
 
-        #TODO re-enable if working
         self.button_fit_insensitive = QtGui.QPushButton('Fit ellipse stack (abs)', self)
         self.button_fit_insensitive.setFocusPolicy(QtCore.Qt.NoFocus)
         self.layout.addWidget(self.button_fit_insensitive)
@@ -544,7 +543,6 @@ class MainWidget(QtGui.QTreeWidget):
         #self.connect(control_widget.button_fit, QtCore.SIGNAL('clicked()'), mayavi_widget.update_ellipsoid)
         self.connect(control_widget.button_fit_sphere_stack, QtCore.SIGNAL('clicked()'), self.update_stack)
         self.connect(control_widget.button_fit_stack, QtCore.SIGNAL('clicked()'), self.update_ellipse_stack)
-        #TODO fix an re-enable
         self.connect(control_widget.button_fit_insensitive, QtCore.SIGNAL('clicked()'), self.update_ellipse_stack_eps)
         self.connect(control_widget.button_load, QtCore.SIGNAL('clicked()'), self.load)
         self.connect(control_widget.button_eval, QtCore.SIGNAL('clicked()'), self.evaluate)
@@ -553,9 +551,7 @@ class MainWidget(QtGui.QTreeWidget):
         self.connect(control_widget.spin_radius, QtCore.SIGNAL('valueChanged(double)'), self.update_radius_offset)
         self.connect(control_widget, QtCore.SIGNAL('superDirectoryChanged(PyQt_PyObject)'), self.add_all_datasets)
 
-        # TODO remove this eventually
-        #super_dir = "/fml/ag-raetsch/home/sumrania/Desktop/forChris_Philipp/"
-
+        
         #self.add_all_datasets(super_dir)
 
         self.show()
@@ -573,8 +569,17 @@ class MainWidget(QtGui.QTreeWidget):
         directories.sort()
 
         for dat in directories:
-            #TODO check if tiffs are present
-            self.add_dataset(dat)      
+            
+            contains_tiffs = False
+            for f in os.listdir(dat):
+                if f.endswith("tif"):
+                    contains_tiffs = True
+                    break
+
+            if contains_tiffs:
+                self.add_dataset(dat)
+            else:
+                print "directorty %s does not contain tiffs, skipping" % (dat)
 
 
     def add_dataset(self, tif_dir):
@@ -744,7 +749,6 @@ class MainWidget(QtGui.QTreeWidget):
         """
 
         dialog = QtGui.QFileDialog()
-        #dialog.setFileMode(QtGui.QFileDialog.AnyFile)
         file_name = str(dialog.getOpenFileName(self, 'Load project'))
 
         if not file_name == "":
