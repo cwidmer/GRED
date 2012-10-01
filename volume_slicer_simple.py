@@ -100,14 +100,9 @@ class SimpleSlicerQWidget(QtGui.QWidget):
         self.axes_green.clear()
 
         self.axes.imshow(channel1, interpolation="nearest")
+        a = range(5)
         self.axes_green.imshow(channel2, interpolation="nearest", cmap=cm.Greys_r)
-        #self.axes.set_xlim((-0.5,5))
-        #self.axes.set_ylim((-0.5,5))
-        #self.axes.set_xlim(xlim)
-        #self.axes.set_ylim(ylim)
-        #self.axes.autoscale(False)
 
-        self.canvas.draw()
 
         if self.dataset.stack:
             n = 50
@@ -133,4 +128,5 @@ class SimpleSlicerQWidget(QtGui.QWidget):
                     self.axes_green.plot(dat_off[0], dat_off[1], "r-", scalex=False, scaley=False)
 
 
+        self.canvas.draw()
 
