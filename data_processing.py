@@ -116,8 +116,6 @@ def threshold_volume(vol, threshold, std_cut):
     # cut points based on distance to center
     keep = cut_points(d_x, d_y, d_z, std_cut=std_cut)
 
-    print "keep", keep[:10]
-
     # select keepers
     d_x = numpy.array(d_x)[keep]
     d_y = numpy.array(d_y)[keep]

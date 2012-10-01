@@ -79,11 +79,11 @@ class Loss(object):
         
         if loss_type == "algebraic_squared":
             self.c_fun = losses["algebraic_squared"][0]
-            self.c_grad = losses["algebraic_squared"][1]
+            self.c_grads = losses["algebraic_squared"][1]
 
         elif loss_type == "algebraic_abs":
             self.c_fun = losses["algebraic_abs"][0]
-            self.c_grad = losses["algebraic_abs"][1]
+            self.c_grads = losses["algebraic_abs"][1]
 
         else:
             print "WARNING: unknown loss function"
