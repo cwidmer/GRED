@@ -21,7 +21,7 @@ import numpy
 import loss_functions
 import util
 from util import Ellipse
-
+from autowrapped_loss import Loss
 import sympy
 
 
@@ -751,92 +751,6 @@ def fit_ellipse_stack_squared(dx, dy, dz, di):
     print "XXX", z, a, b, alpha
 
     return z, a, b, alpha
-
-
-
-class Loss(object):
-    """
-    derive gradient for various loss functions using sympy
-    """
-
-    def __init__(self, loss_type):
-        """
-        set up symbolic derivations
-        """
-
-        from sympy.utilities.autowrap import autowrap
-
-        self.x = x = sympy.Symbol("x")
-        self.y = y = sympy.Symbol("y")
-        self.z = z = sympy.Symbol("z")
-        self.cx = cx = sympy.Symbol("cx")
-        self.cy = cy = sympy.Symbol("cy")
-        self.wx = wx = sympy.Symbol("wx")
-        self.wy = wy = sympy.Symbol("wy")
-        self.rx = rx = sympy.Symbol("rx")
-        self.ry = ry = sympy.Symbol("ry")
-        
-
-        if loss_type == "algebraic_squared":
-            self.fun = ((x-(cx + z*wx))**2/(rx*rx) + (y-(cy + z*wy))**2/(ry*ry) - 1)**2
-
-        if loss_type == "algebraic_abs":
-            self.fun = sympy.sqrt(((x-(cx + z*wx))**2/(rx*rx) + (y-(cy + z*wy))**2/(ry*ry) - 1)**2 + 0.01)
-
-        #TODO replace x**2 with x*x
-        self.fun = self.fun.expand(deep=True)
-        sympy.pprint(self.fun)
-
-        self.d_cx = self.fun.diff(cx).expand(deep=True)
-        self.d_cy = self.fun.diff(cy).expand(deep=True)
-        self.d_wx = self.fun.diff(wx).expand(deep=True)
-        self.d_wy = self.fun.diff(wy).expand(deep=True)
-        self.d_rx = self.fun.diff(rx).expand(deep=True)
-        self.d_ry = self.fun.diff(ry).expand(deep=True)
-
-
-        # generate native code
-        native_lang = "C"
-
-        if native_lang == "fortran":
-            self.c_fun = autowrap(self.fun, language="F95", backend="f2py")
-            self.c_d_cx = autowrap(self.d_cx)
-            self.c_d_cy = autowrap(self.d_cy)
-            self.w_d_wx = autowrap(self.d_wx)
-            self.w_d_wy = autowrap(self.d_wy)
-            self.c_d_rx = autowrap(self.d_rx)
-            self.c_d_ry = autowrap(self.d_ry)
-        else:
-            self.c_fun = autowrap(self.fun, language="C", backend="Cython", tempdir=".")
-            self.c_d_cx = autowrap(self.d_cx, language="C", backend="Cython", tempdir=".")
-            self.c_d_cy = autowrap(self.d_cy, language="C", backend="Cython", tempdir=".")
-            self.c_d_wx = autowrap(self.d_wx, language="C", backend="Cython", tempdir=".")
-            self.c_d_wy = autowrap(self.d_wy, language="C", backend="Cython", tempdir=".")
-            self.c_d_rx = autowrap(self.d_rx, language="C", backend="Cython", tempdir=".")
-            self.c_d_ry = autowrap(self.d_ry, language="C", backend="Cython", tempdir=".")
-
-        self.grads = {"cx": self.d_cx, "cy": self.d_cy, "wx": self.d_wx, "wy": self.d_wy, "rx": self.d_rx, "ry": self.d_ry}
-        self.c_grads = {"cx": self.c_d_cx, "cy": self.c_d_cy, "wx": self.c_d_wx, "wy": self.c_d_wy, "rx": self.c_d_rx, "ry": self.c_d_ry}
-
-
-    def get_obj(self, x, y, z, cx, cy, wx, wy, rx, ry):
-        """
-        eval objective at point
-        """
-
-        c_obj = float(self.c_fun(cx, cy, rx, ry, wx, wy, x, y, z))
-
-        return c_obj
-
-
-    def get_grad(self, var_name, x, y, z, cx, cy, wx, wy, rx, ry):
-        """
-        eval gradient for variable at point
-        """
-        
-        grad = float(self.c_grads[var_name](cx, cy, rx, ry, wx, wy, x, y, z))
-
-        return grad
 
         
 if __name__ == "__main__":
