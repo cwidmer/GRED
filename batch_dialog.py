@@ -43,6 +43,7 @@ class BatchDialog(QtGui.QDialog):
         values = {}
         values["radius_offset"] = self.radius_offset.value()
         values["threshold"] = self.threshold.value()
+        values["std_cut"] = self.std_cut.value()
         values["method"] = method_idx_to_name[self.method.currentIndex()]
 
         return values

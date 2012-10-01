@@ -430,8 +430,6 @@ class TableWidget(QtGui.QTableWidget):
         appends dat to dataset and adds new table item
         """
 
-        print "XXX adding", dat
-
         fn = dat.split("/")[-1]
 
         item = QtGui.QTableWidgetItem(fn)
@@ -794,8 +792,12 @@ class MainWidget(QtGui.QTreeWidget):
                 print "batch processing", key
 
                 try:
+                    # preproc data
+                    d.threshold = values["threshold"]
+                    d.std_cut = values["std_cut"]
+                    d.volume_to_points()
+
                     # do actual processing
-                    d.update_threshold(values["threshold"])
                     d.fit_stack(values["method"])
 
                     # update plots
@@ -810,6 +812,7 @@ class MainWidget(QtGui.QTreeWidget):
 
                 except Exception, detail:
                     print "problem encountered when when analyzing", key
+                    print detail
 
             print "batch processing done."
 
@@ -888,6 +891,7 @@ class Dataset(object):
 
         self.tif_dir = tif_dir
         self.threshold = 255
+        self.std_cut = 3.0
 
         # set defaults
         self.clear()
@@ -934,7 +938,7 @@ class Dataset(object):
         convert volume to points
         """
 
-        x, y, z, i, vol = threshold_volume(self.red_channel, self.threshold) 
+        x, y, z, i, vol = threshold_volume(self.red_channel, self.threshold, self.std_cut) 
         #print "WARNING DEBUGGIN"
         #x, y, z, i, vol = artificial_data() #artificial_data()
         self.points = Data(x, y, z, i)
@@ -942,6 +946,15 @@ class Dataset(object):
         self.is_loaded = True
 
         print "new thresholding done"
+
+
+    def update_std_cut(self, cut):
+        """
+        update std_cut
+        """
+
+        self.std_cut = cut
+        self.volume_to_points()
 
 
     def update_threshold(self, thres):

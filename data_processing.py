@@ -80,10 +80,12 @@ def load_tif(tif_dir, target):
     return vol
 
 
-def threshold_volume(vol, threshold):
+def threshold_volume(vol, threshold, std_cut):
     """
     given threshold, apply thresholding return a list of points 
     and thresholded volume
+
+    std_cut: number of std wrt distance to center in which to cut
     """
 
     # perform thresholding
@@ -96,24 +98,64 @@ def threshold_volume(vol, threshold):
     vol = crop_data(b)
 
     # create points from volume
-    data_x = []
-    data_y = []
-    data_z = []
-    data_intensity = []
+    d_x = []
+    d_y = []
+    d_z = []
+    d_intensity = []
 
     for idx_x in range(vol.shape[0]):
         for idx_y in range(vol.shape[1]):
             for idx_z in range(vol.shape[2]):
 
                 if vol[idx_x, idx_y, idx_z] > 0:
-                    data_x.append(idx_x)
-                    data_y.append(idx_y)
-                    data_z.append(idx_z)
-                    data_intensity.append(vol[idx_x, idx_y, idx_z])
+                    d_x.append(idx_x)
+                    d_y.append(idx_y)
+                    d_z.append(idx_z)
+                    d_intensity.append(vol[idx_x, idx_y, idx_z])
+
+    # cut points based on distance to center
+    keep = cut_points(d_x, d_y, d_z, std_cut=std_cut)
+
+    print "keep", keep[:10]
+
+    # select keepers
+    d_x = numpy.array(d_x)[keep]
+    d_y = numpy.array(d_y)[keep]
+    d_z = numpy.array(d_z)[keep]
+    d_intensity = numpy.array(d_intensity)[keep]
+
+    return d_x, d_y, d_z, d_intensity, vol
 
 
-    return data_x, data_y, data_z, data_intensity, vol
+def cut_points(data_x, data_y, data_z, std_cut=3.0, debug=False):
+    """
+    cut points based on distance to center
+    """
 
+    assert len(data_x) == len(data_y) == len(data_z)
+    dat = numpy.zeros((len(data_x), 3))
+    dat[:,0] = data_x
+    dat[:,1] = data_y
+    dat[:,2] = data_z
+
+    mean = dat.mean(axis=0)
+    diff_vec = dat - mean
+    distances = map(numpy.linalg.norm, diff_vec)
+
+    norm_dist = (distances - numpy.mean(distances)) / numpy.std(distances)
+
+    # cut everything that is more than std_cut std deviations from center
+    keeper_idx = numpy.where(norm_dist <= std_cut)[0]
+
+    assert len(keeper_idx) <= len(data_x)
+    print "cut %f std deviations, keeping %i/%i points" % (std_cut, len(keeper_idx), len(data_x))
+
+    if debug:
+        import pylab
+        pylab.hist(norm_dist, bins=100)
+        pylab.show()
+
+    return keeper_idx
 
 
 def crop_data(vol):
