@@ -682,7 +682,7 @@ class MainWidget(QtGui.QTreeWidget):
                 for layer in xrange(dataset.evaluation.num_layers):
                     area = dataset.evaluation.layer_area_in_micro_m[layer]
                     intensity = dataset.evaluation.layer_intensity[layer]
-                    inner_f.write("%i, %f, %f\n" % (layer, area, intensity))
+                    inner_f.write("%i, %f, %f\n" % (layer + 1, area, intensity))
 
                 inner_f.close()
 
