@@ -83,7 +83,6 @@ class Visualization(HasTraits):
 
         print "updating ellipse stack"
 
-        self.update_data()
         n = 50
         
         # sample data
@@ -257,7 +256,7 @@ class MayaviQWidget(QtGui.QWidget):
             self.visualization.data = tuple(dataset.points)
             #self.visualization.data = dataset.volume
 
-	        self.visualization.ellipse_stack = dataset.stack
+            self.visualization.ellipse_stack = dataset.stack
 
 
 
