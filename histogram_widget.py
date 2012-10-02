@@ -30,13 +30,13 @@ class HistogramQWidget(QtGui.QWidget):
         """
 
 
-        self.dataset = None
-        
+        self.data = None
+        self.value = 0
 
         QtGui.QWidget.__init__(self, parent)
-        self.my_layout = QtGui.QVBoxLayout(self)
+        self.my_layout = QtGui.QGridLayout(self)
         self.my_layout.setMargin(0)
-        self.my_layout.setSpacing(0)
+        self.my_layout.setSpacing(10)
 
 
         # set up matplotlib
@@ -46,10 +46,21 @@ class HistogramQWidget(QtGui.QWidget):
         self.canvas.setMinimumSize(300, 100)
         self.canvas.mpl_connect('button_press_event', self.on_click)
         #self.canvas.setParent(self)
-        self.my_layout.addWidget(self.canvas) 
+        self.my_layout.addWidget(self.canvas, 0, 0, 1, 2)
             
         self.axes = self.fig.add_subplot(111)
         self.cax = None
+
+        # add spin box
+        self.spin_label = QtGui.QLabel(self)#, 'Value:'
+        self.my_layout.addWidget(self.spin_label, 1, 0)
+
+        self.spin = QtGui.QDoubleSpinBox(self)
+        self.spin.setMinimum(-10.0)
+        self.spin.setMaximum(10.0)
+        self.spin.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.spin.setSingleStep(0.2)
+        self.my_layout.addWidget(self.spin, 1, 1)
 
 
     def on_click(self, event):
@@ -61,13 +72,24 @@ class HistogramQWidget(QtGui.QWidget):
         self.emit(QtCore.SIGNAL('thresholdChanged(int)'), event.xdata)
 
 
+    def update_value(self, v):
+        """
+        update plot
+
+        """
+
+        self.value = v
+        self.update_plot()
+ 
+
     def update_dataset(self, dataset):
         """
         update plot
 
         """
 
-        self.dataset = dataset
+        self.value = dataset.threshold
+        self.data = dataset.red_channel.flatten()
         self.update_plot()
         
 
@@ -78,11 +100,8 @@ class HistogramQWidget(QtGui.QWidget):
 
         print "updating histogram plot"
 
-        dat = self.dataset.red_channel.flatten()
         self.axes.clear()       
-        self.axes.hist(dat, bins=100, range=(min(dat), max(dat)))
-        self.axes.axvline(x=self.dataset.threshold, linewidth=1, color='r')
-        #self.axes.set_xlim((-5,5))
-        #self.axes.set_ylim((-5,5))
+        self.axes.hist(self.data, bins=100, range=(min(self.data), max(self.data)))
+        self.axes.axvline(x=self.value, linewidth=1, color='r')
         self.canvas.draw()
 
