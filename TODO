@@ -1,9 +1,9 @@
 
+
 WISHES From Steffi:
 
 - 3d plot anschauen??
 - outlier as single fit
-- beim batch processing die Radiuskorrektur einzustellen funktioniert schon super, allerdings hängt es immer noch bei den einzelnen Nuklei (d.h., da muss ich, obwohl z.B. 0.80 vom vorherigen Fit dasteht, immer noch manuell klicken, damit das Programm dann auch wirklich den Wert nimmt, statt mit 0.00 zu rechnen)
 - es ist anfangs etwas schwierig einzuschätzen ob die outlier removal mit 3 Standardabweichungen jetzt gut oder schlecht ist. Ist das in deinen Augen viel oder wenig? 
 
 
@@ -21,4 +21,5 @@ TODOS
 DONE
 - percentile for batch
 - histogram widget mit spinbox
+- fix display of radius offset
 
