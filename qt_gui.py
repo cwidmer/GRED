@@ -81,6 +81,7 @@ class Visualization(HasTraits):
         plot ellipse stack
         """
 
+        print "updating ellipse stack"
 
         self.update_data()
         n = 50
@@ -97,6 +98,7 @@ class Visualization(HasTraits):
 
             self.scene.mlab.points3d(dx,dy,dz,dv,colormap="copper", scale_factor=.015, opacity=0.5)
 
+        print "updating ellipse stack DONE."
         # update data source
         # TODO keep list of plots
         #self.stack_plot.mlab_source.set(x=dx, y=dy, z=dz, s=dv)
@@ -138,6 +140,7 @@ class Visualization(HasTraits):
         self.data_plot = self.scene.mlab.points3d(self.data[0], self.data[1], self.data[2], self.data[3],colormap="Reds", scale_factor=.001, opacity=0.2, scale_mode="scalar")
 
         #self.data_plot.mlab_source.set(scalars=self.data, opacity=0.1)
+        print "updating data done."
         
 
     # the layout of the dialog screated
@@ -253,8 +256,8 @@ class MayaviQWidget(QtGui.QWidget):
         if dataset.volume != None:
             self.visualization.data = tuple(dataset.points)
             #self.visualization.data = dataset.volume
-        if dataset.stack != None:
-            self.visualization.ellipse_stack = dataset.stack
+
+	        self.visualization.ellipse_stack = dataset.stack
 
 
 
@@ -873,7 +876,7 @@ class Dataset(object):
         self.points = None
         self.volume = None
         self.is_loaded = False
-        self.stack = None
+        self.stack = {}
         self.radius_offset = 0        
 
         self.evaluation = None
