@@ -346,9 +346,21 @@ class ControlWidget(QtGui.QWidget):
         self.directory = QtGui.QFileDialog.getExistingDirectory(self, "Select Directory")
         self.emit(QtCore.SIGNAL('directoryChanged(PyQt_PyObject)'), self.directory)
 
+
     def select_super_dir(self):
         self.super_directory = QtGui.QFileDialog.getExistingDirectory(self, "Select Directory")
         self.emit(QtCore.SIGNAL('superDirectoryChanged(PyQt_PyObject)'), self.super_directory)
+
+
+    def update_dataset(self, dataset):
+        """
+        wrapper for updated dataset
+        """
+
+        # set silent
+        self.spin_radius.blockSignals(True)
+        self.spin_radius.setValue(dataset.radius_offset)
+        self.spin_radius.blockSignals(False)
 
 
 class TableWidget(QtGui.QTableWidget):
@@ -494,6 +506,7 @@ class MainWidget(QtGui.QTreeWidget):
         self.connect(self, QtCore.SIGNAL('activeDatasetChanged(PyQt_PyObject)'), mayavi_widget.update_dataset)
         self.connect(self, QtCore.SIGNAL('activeDatasetChanged(PyQt_PyObject)'), slicer_widget.update_dataset)
         self.connect(self, QtCore.SIGNAL('activeDatasetChanged(PyQt_PyObject)'), hist_widget.update_dataset)
+        self.connect(self, QtCore.SIGNAL('activeDatasetChanged(PyQt_PyObject)'), control_widget.update_dataset)
         self.connect(self, QtCore.SIGNAL('newKey(PyQt_PyObject)'), table_widget.add_dataset)
         self.connect(table_widget, QtCore.SIGNAL('directoryChanged(PyQt_PyObject)'), self.change_active_dataset)
         self.connect(hist_widget, QtCore.SIGNAL('thresholdChanged(double)'), self.update_threshold)

@@ -1,12 +1,13 @@
 
 WISHES From Steffi:
 
-batch processing:
+- 3d plot anschauen??
+- outlier as single fit
 - beim batch processing die Radiuskorrektur einzustellen funktioniert schon super, allerdings hängt es immer noch bei den einzelnen Nuklei (d.h., da muss ich, obwohl z.B. 0.80 vom vorherigen Fit dasteht, immer noch manuell klicken, damit das Programm dann auch wirklich den Wert nimmt, statt mit 0.00 zu rechnen)
 - es ist anfangs etwas schwierig einzuschätzen ob die outlier removal mit 3 Standardabweichungen jetzt gut oder schlecht ist. Ist das in deinen Augen viel oder wenig? 
 
+
 allgemein (kopiert von der letzten Mail :-)):
-- es wäre toll, wenn ich den Regler beim Histogramm noch etwas besser bedienen könnte (z.B. den Schwellenwert direkt als Zahl angezeigt wird, die ich dann z.B. durch Eintippen einer neuen Zahl verändern kann). Momentan ist das bei mir eher wildes Rumgeklicke, um einen Wert zu treffen :-)
 - gäbe es eine Möglichkeit das momentan geladene Projekt bzw. die Liste an z.B. schon ausgewerteten Nuklei zu löschen, ohne dabei das gesamte Programm schließen und wieder öffnen zu müssen? Das muss ich manchmal machen, wenn ich z.B. ein neues Protein analysieren möchte und ein neues batch processing anfangen will.
 - Gäbe es eine Möglichkeit die Skalierung des grünen Kanals (also die 528-Bilder) aktiv ändern zu können? Durch die automatische Skalierung sieht man manchmal die Signale nicht wirklich gut. Würde aber bei mir ganz unten auf der Wunschliste stehen :-)
 - beim Export: könntest du in den Files der individuellen Nuklei die Layer von 1-20 statt von 0-19 laufen lassen? Das wäre etwas intuitiver. (das steht noch weiter unten auf der Liste...)
@@ -16,4 +17,8 @@ TODOS
 
 - fix abs fit:
     * enden gegen 0 ziehen
+
+DONE
+- percentile for batch
+- histogram widget mit spinbox
 
