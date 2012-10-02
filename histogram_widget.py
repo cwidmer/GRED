@@ -48,15 +48,21 @@ class HistogramQWidget(QtGui.QWidget):
         self.cax = None
 
         # add spin box
-        self.spin_label = QtGui.QLabel(self)#, 'Value:'
+        self.spin_label = QtGui.QLabel(self)
+        self.spin_label.setText('Value:')
         self.my_layout.addWidget(self.spin_label, 1, 0)
 
         self.spin = QtGui.QDoubleSpinBox(self)
-        self.spin.setMinimum(-10.0)
-        self.spin.setMaximum(10.0)
-        self.spin.setFocusPolicy(QtCore.Qt.NoFocus)
-        self.spin.setSingleStep(0.2)
+        self.spin.setMinimum(0.0)
+        self.spin.setMaximum(1000.0)
+        #self.spin.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.spin.setSingleStep(10)
+        self.spin.setKeyboardTracking(False)
+        self.spin.setReadOnly(False)
         self.my_layout.addWidget(self.spin, 1, 1)
+
+        # connect signals
+        self.connect(self.spin, QtCore.SIGNAL('valueChanged(double)'), self.update_value)
 
 
     def on_click(self, event):
@@ -65,7 +71,7 @@ class HistogramQWidget(QtGui.QWidget):
         """
 
         print 'button=%d, x=%d, y=%d, xdata=%f, ydata=%f'%(event.button, event.x, event.y, event.xdata, event.ydata)
-        self.emit(QtCore.SIGNAL('thresholdChanged(int)'), event.xdata)
+        self.update_value(float(event.xdata))
 
 
     def update_value(self, v):
@@ -75,18 +81,22 @@ class HistogramQWidget(QtGui.QWidget):
         """
 
         self.value = v
+        self.spin.setValue(self.value)
         self.update_plot()
+
+        self.emit(QtCore.SIGNAL('thresholdChanged(double)'), self.value)
  
 
     def update_dataset(self, dataset):
         """
-        update plot
-
+        wrapper for update value
+        
         """
-
+        #TODO this can go in subclass
         self.value = dataset.threshold
         self.data = dataset.red_channel.flatten()
         self.update_plot()
+        self.spin.setValue(self.value)
         
 
     def update_plot(self):

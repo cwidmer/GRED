@@ -496,7 +496,7 @@ class MainWidget(QtGui.QTreeWidget):
         self.connect(self, QtCore.SIGNAL('activeDatasetChanged(PyQt_PyObject)'), hist_widget.update_dataset)
         self.connect(self, QtCore.SIGNAL('newKey(PyQt_PyObject)'), table_widget.add_dataset)
         self.connect(table_widget, QtCore.SIGNAL('directoryChanged(PyQt_PyObject)'), self.change_active_dataset)
-        self.connect(hist_widget, QtCore.SIGNAL('thresholdChanged(int)'), self.update_threshold)
+        self.connect(hist_widget, QtCore.SIGNAL('thresholdChanged(double)'), self.update_threshold)
         self.connect(self, QtCore.SIGNAL('activeDatasetEvaluated(PyQt_PyObject)'), table_widget.update_evaluation)
 
         # create deep links to control widget (simple)
