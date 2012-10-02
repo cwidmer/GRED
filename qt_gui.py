@@ -576,8 +576,6 @@ class MainWidget(QtGui.QTreeWidget):
         """
 
         self.active_dataset = self.datasets[key]
-
-        id = QtCore.QMetaType.type('Dataset')
         self.emit(QtCore.SIGNAL('activeDatasetChanged(PyQt_PyObject)'), self.active_dataset)
 
     
