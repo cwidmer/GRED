@@ -752,7 +752,7 @@ class MainWidget(QtGui.QTreeWidget):
 
                 try:
                     # preproc data
-                    d.threshold = values["threshold"]
+                    d.threshold = scipy.stats.scoreatpercentile(d.red_channel.flatten(), values["percentile"])
                     d.std_cut = values["std_cut"]
                     d.volume_to_points()
 

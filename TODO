@@ -1,17 +1,16 @@
 ===
 WISHES From Steffi:
 
-1) es wäre toll, wenn ich den Regler beim Histogramm noch etwas besser bedienen könnte (z.B. den Schwellenwert direkt als Zahl angezeigt wird, die ich dann z.B. durch Eintippen einer neuen Zahl verändern kann). Momentan ist das bei mir eher wildes Rumgeklicke, um einen Wert zu treffen :-)
+batch processing:
+- das batch processing ist schon super, allerdings fände ich es besser statt einen genauen Schwellenwert wieder eine Perzentile anzugeben (was genau nimmst du momentan für die individuellen Nuklei als Wert?) Der Wert ist recht unterschiedlich für die einzelnen tracks, deshalb passt beim batch processing bei einigen Nuklei der Fit nicht.
+- es ist anfangs etwas schwierig einzuschätzen ob die outlier removal mit 3 Standardabweichungen jetzt gut oder schlecht ist. Ist das in deinen Augen viel oder wenig? 
+- beim batch processing die Radiuskorrektur einzustellen funktioniert schon super, allerdings hängt es immer noch bei den einzelnen Nuklei (d.h., da muss ich, obwohl z.B. 0.80 vom vorherigen Fit dasteht, immer noch manuell klicken, damit das Programm dann auch wirklich den Wert nimmt, statt mit 0.00 zu rechnen)
 
-- was mich jetzt bei der Analyse gestört hat, war die Tatsache, dass ich immer wieder neu die Radiuskorrektur einstellen musste, d.h. selbst wenn noch von der vorherigen Analyse z.B. eine Radiuskorrektur von +0.80 eingestellt war, wurde das nicht automatisch bei der Evaluation des neuen Nukleus als Berechnungsgrundlage genutzt, sondern wieder von einem Wert von 0.00 ausgegangen (ohne, dass man das sehen konnte). Das macht es dann etwas nervig, wenn man den Radius erst wieder durch hoch- und runterklicken einstellen muss. Besser fände ich, wenn man entweder 1) einen 'apply'-Button neben dem Radiusfeld hätte, mit dem man durch einmaliges Klicken den angegebenen Radius bestätigt oder 2) der Radius direkt übernommen wird vom vorherigen Nukleus und man nur durch aktives Ändern einen anderen Wert einstellt oder 3) der Radiuswert bei jedem neu geöffneten Nukleus auf 0.00 zurückgestellt wird (dann muss man zwar immer neu klicken, aber zumindest stimmen dann Anzeige mit tatsächlich berechnetem Wert überein).
-
-- noch zwei kleine Dinge: 
-2) Gäbe es eine Möglichkeit die Skalierung des grünen Kanals (also die 528-Bilder) aktiv ändern zu können? Durch die automatische Skalierung sieht man manchmal die Signale nicht wirklich gut. Würde aber bei mir ganz unten auf der Wunschliste stehen :-)
-
-2) könntest du den roten Kanal zusätzlich abbilden in rot oder greyscale, mit auch einem Schieber? Ich würde mir den roten Kanal gern unabhängig von tracking anschauen, weil ich ungern im Histogramm den Wert ändern möchte, der fürs Tracken benutzt wurde.
-
-Da fällt mir nochwas ein: würde es per se einfach einzubauen sein, dass man auch andere Pixelgrößen trackt? Ich arbeite ja momentan mit 
-,3die die Pixellänge von 0.2151 µm verursacht. Wir haben aber auch Aufnahmen, die wir nur mit 1x1 binning machen (dann reduziert sich die Pixelgröße auf 0.1075 µm). Kann man noch ein extra Dialogfenster einfügen, in dem man die Pixelgröße einträgt, wenn man nicht mit 2x2 binning, sondern 1x1 binning arbeitet? Wäre etwas unter Punkt 7 (fancy extras) :-)
+allgemein (kopiert von der letzten Mail :-)):
+- gäbe es eine Möglichkeit das momentan geladene Projekt bzw. die Liste an z.B. schon ausgewerteten Nuklei zu löschen, ohne dabei das gesamte Programm schließen und wieder öffnen zu müssen? Das muss ich manchmal machen, wenn ich z.B. ein neues Protein analysieren möchte und ein neues batch processing anfangen will.
+- es wäre toll, wenn ich den Regler beim Histogramm noch etwas besser bedienen könnte (z.B. den Schwellenwert direkt als Zahl angezeigt wird, die ich dann z.B. durch Eintippen einer neuen Zahl verändern kann). Momentan ist das bei mir eher wildes Rumgeklicke, um einen Wert zu treffen :-)
+- Gäbe es eine Möglichkeit die Skalierung des grünen Kanals (also die 528-Bilder) aktiv ändern zu können? Durch die automatische Skalierung sieht man manchmal die Signale nicht wirklich gut. Würde aber bei mir ganz unten auf der Wunschliste stehen :-)
+- beim Export: könntest du in den Files der individuellen Nuklei die Layer von 1-20 statt von 0-19 laufen lassen? Das wäre etwas intuitiver. (das steht noch weiter unten auf der Liste...)
 
 
 
