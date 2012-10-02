@@ -1,5 +1,12 @@
+#!/usr/bin/env python2.5
+#
+# Written (W) 2011-2012 Christian Widmer
+# Copyright (C) 2011-2012 Max-Planck-Society
+
 """
-module contains autowrapped code, which is executed once on import
+@author: Christian Widmer
+
+@summary: module contains autowrapped code, which is executed once on import
 """
 
 import sympy

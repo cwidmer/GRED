@@ -1,11 +1,7 @@
 #!/usr/bin/env python2.5
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3 of the License, or
-# (at your option) any later version.
 #
-# Written (W) 2011 Christian Widmer
-# Copyright (C) 2011 Max-Planck-Society
+# Written (W) 2011-2012 Christian Widmer
+# Copyright (C) 2011-2012 Max-Planck-Society
 
 """
 @author: Christian Widmer
