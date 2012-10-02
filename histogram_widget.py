@@ -96,7 +96,10 @@ class HistogramQWidget(QtGui.QWidget):
         self.value = dataset.threshold
         self.data = dataset.red_channel.flatten()
         self.update_plot()
+
+        self.spin.blockSignals(True)
         self.spin.setValue(self.value)
+        self.spin.blockSignals(False)
         
 
     def update_plot(self):
