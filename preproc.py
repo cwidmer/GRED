@@ -12,6 +12,9 @@
 import os
 
 import vigra.filters
+from vigra.impex import writeVolume
+#, writeSlices
+
 import numpy
 import pylab
 from matplotlib.patches import Polygon
@@ -44,12 +47,18 @@ def load_data3D():
 
 def plot_image_show(data, title=""):
 
-    #TODO implement for volumes
+
     return ""
+
+    #TODO implement for volumes
+    mid_z = data.shape[2] / 2
+    dat2d = data[:,:,mid_z]
+
+    print "new shape", dat2d.shape
 
     pylab.figure()
 
-    plot_image(data, title)
+    plot_image(dat2d, title)
     pylab.title(title)
 
     pylab.show()
@@ -66,6 +75,7 @@ def plot_image(data, title="", alpha=1.0):
         for j in xrange(data.shape[1]):
             tmp_array[i,j] = data[i,j]
 
+    print "img shape", tmp_array.shape
     pylab.imshow(tmp_array, interpolation="nearest", alpha=alpha)
 
 
@@ -115,11 +125,12 @@ def extract():
         #hessian = vigra.filters.hessianOfGaussianEigenvalues(tmp, tmp_sigma)#, sigma_d=0.0, step_size=1.0, window_size=0.0, roi=None)
 
         hessian = vigra.filters.hessianOfGaussian3D(tmp, 0.4) #, tmp_sigma)#, sigma_d=0.0, step_size=1.0, window_size=0.0, roi=None)
-        plot_image_show(hessian, title="hessian")
+        print "hessian.shape", hessian.shape
+        plot_image_show(hessian[:,:,:,3], title="hessian")
 
         ev = vigra.filters.tensorEigenvalues(hessian)
-        plot_image_show(ev[:,:,0], title="eigenvalue 0")
-        plot_image_show(ev[:,:,1], title="eigenvalue 1")
+        plot_image_show(ev[:,:,:,0], title="eigenvalue 0")
+        plot_image_show(ev[:,:,:,1], title="eigenvalue 1")
 
         print "ev.shape", ev.shape
 
@@ -149,7 +160,7 @@ def extract():
         # heart piece
 
         # 
-        detect_boxes(data, dilated_numpy)
+        detect_boxes(data, dilated)
 
 
         print "number of labels", unique
@@ -176,58 +187,54 @@ def detect_boxes(raw_data, vol):
     routine to automatically detect boxes in segmented image
     """
 
-    dilated_numpy = numpy.array(seeds, dtype=numpy.uint8)
+    labels_numpy = numpy.array(vol, dtype=numpy.uint8)
 
-    labels = vigra.analysis.labelVolume(vol)
+    labels = vigra.analysis.labelVolume(labels_numpy)
     plot_image_show(labels, title="labels")
 
     a = numpy.array(labels)
+
+    # determine unique cell labels
     unique = range(2, numpy.max(a))
-
-    #pylab.figure()
-    #plot_image(raw_data, title="labels")
-
 
     for idx in unique:
 
+        # TODO make sure order is correct
         pz, py, px = numpy.where(a == idx)
 
-        # TODO make sure order is correct
-        assert max(pz) < max(px)
+        assert len(pz) == len(py) == len(px)
 
-        x_left = min(px)
-        x_right = max(px)
-        y_top = max(py)
-        y_bot = min(py)
+        # determine dimensions
+        d_x = int(max(px) - min(px)) + 1
+        d_y = int(max(py) - min(py)) + 1
+        d_z = int(max(pz) - min(pz)) + 1
 
-        z_top = max(pz)
-        z_bot = min(pz)
+        # set up target volume
+        tvol = vigra.ScalarVolume((d_x, d_y, d_z))
 
-        print "idx", idx
-        print "x_l, x_r", x_left, x_right
-        print "y_t, y_b", y_top, y_bot
-        print ""
+        # translate into target coordinates
+        tx = numpy.array(px) - min(px)
+        ty = numpy.array(py) - min(py)
+        tz = numpy.array(pz) - min(pz)
+
+        # copy point to new volume
+        for i in xrange(len(tx)):
+            tvol[tx[i], ty[i], tz[i]] = raw_data[px[i], py[i], pz[i]]
 
 
-        #pointListX = [10, 20, 20, 10]
-        #pointListY = [10, 10, 20, 20]
+        # write volume
+        #tvol_numpy = numpy.array(tvol, dtype=numpy.uint8)
+        tvol_numpy = numpy.array(tvol, dtype=numpy.float32)
+        #writeVolume(tvol_numpy, "test/vol_", "tiff")
+        #writeSlices(tvol_numpy, "test/vol_", "tiff")
+        #writeVolume(tvol_numpy, fn_base = "test/vol_", filename_ext="tiff", dtype = '', compression = '')
 
-        pointListX = [x_left,x_right,x_right,x_left, x_left,x_right,x_right,x_left]
-        pointListY = [y_bot,y_bot,y_top,y_top, y_bot,y_bot,y_top,y_top]
-        pointListZ = [z_bot, z_bot, z_bot, z_bot, z_top, z_top, z_top, z_top]
-        #xyList = zip(pointListX, pointListY)
-        #p = Polygon( xyList, alpha=0.2 )
-        #pylab.gca().add_artist(p)
-
-        #pylab.fill(pointListX, pointListY, 'r', alpha=0.4, edgecolor='r')
-
-        #
-        #pylab.axvline(x=x_left, ymin=y_top, ymax=y_bot)
-        #pylab.axvline(x=x_right, ymin=y_top, ymax=y_bot)
-        #pylab.axhline(y=y_top, xmin=x_left, xmax=x_right)
-        #pylab.axhline(y=y_bot, xmin=x_left, xmax=x_right)
-
-    pylab.show()
+        for z in xrange(d_z):
+            img = tvol_numpy[:,:,z]
+            fn_base = "test/vol_%i" % (z)
+            fn_ext = "tif"
+            #writeVolume(tvol_numpy, fn_base, fn_ext, dtype = '', compression = '')
+            writeVolume(tvol_numpy, fn_base, fn_ext)
 
 
 
