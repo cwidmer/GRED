@@ -25,7 +25,7 @@ def load_data3D():
     load stack of tiffs
     """
 
-    tif_dir = "data/whole_volume/20091026_SK570_590_4.5um_13_R3D_CAL_01_D3D/"
+    tif_dir = "data/whole_volume/20091026_SK570_590_4.5um_10_R3D_CAL_01_D3D" #data/whole_volume/20091026_SK570_590_4.5um_13_R3D_CAL_01_D3D/"
     tiffs = [os.path.join(str(tif_dir), f) for f in os.listdir(tif_dir) if f.endswith(".tif")]
     tiffs.sort()
 
@@ -91,17 +91,18 @@ def extract():
     # get data
     data = load_data3D()
    
-    #scales = numpy.linspace(3, 15, 4)
-    scales = numpy.array([6.0])
+    scales = numpy.linspace(1.2, 4, 3)
+    #scales = numpy.array([6.0])
+    #scales = numpy.array([3.0])
     closing = True
     opening = False
     window = 3
-    thresholds = -0.05*numpy.array([1, 2, 3])
+    thresholds = -0.01*numpy.array([1, 2, 3])
     conn = 0
     margin = 0
     verbose = True
-    ratios = numpy.array([1, 1, 0.25])
-    sigmas = numpy.array([1, 2, 4, 8])
+    #ratios = numpy.array([1, 1, 0.25])
+    #sigmas = numpy.array([1, 2, 4, 8])
 
     #seeds = arg(varargin, mstring('init'), true(size(data)))
     seeds = numpy.ones(data.shape)
@@ -115,7 +116,8 @@ def extract():
             print 'analyzing at sigma = %s' % (scale)
 
         # smooth image at this scale
-        tmp = vigra.filters.gaussianSmoothing(data, scale)
+
+        tmp = vigra.filters.gaussianSmoothing(data, (scale, scale, scale*0.5))
         plot_image_show(tmp, title="smoothed Gaussian")
 
         # compute eigenvalues
@@ -129,6 +131,7 @@ def extract():
         ev = vigra.filters.tensorEigenvalues(hessian)
         plot_image_show(ev[:,:,:,0], title="eigenvalue 0")
         plot_image_show(ev[:,:,:,1], title="eigenvalue 1")
+        plot_image_show(ev[:,:,:,1], title="eigenvalue 2")
 
         print "ev.shape", ev.shape
 
@@ -143,13 +146,14 @@ def extract():
 
         
         plot_image_show(seeds, title="seeds")
+        continue
 
         seed_img = numpy.array(seeds, dtype=numpy.uint8)
 
-        closed = vigra.filters.discClosing(seed_img, 2)
+        closed = vigra.filters.discClosing(seed_img, 3)
         plot_image_show(closed, title="closed seed")
 
-        dilated = vigra.filters.discDilation(closed, 2)
+        dilated = vigra.filters.discDilation(closed, 5)
         plot_image_show(dilated, title="dilated seed")
 
 
