@@ -12,7 +12,7 @@
 import os
 
 import vigra.filters
-from vigra.impex import writeVolume
+from vigra.impex import writeVolume, writeImage
 #, writeSlices
 
 import numpy
@@ -232,9 +232,9 @@ def detect_boxes(raw_data, vol):
         for z in xrange(d_z):
             img = tvol_numpy[:,:,z]
             fn_base = "test/vol_%i" % (z)
-            fn_ext = "tif"
+            fn_ext = "png"
             #writeVolume(tvol_numpy, fn_base, fn_ext, dtype = '', compression = '')
-            writeVolume(tvol_numpy, fn_base, fn_ext)
+            writeImage(tvol_numpy, fn_base, fn_ext)
 
 
 
