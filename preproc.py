@@ -163,7 +163,6 @@ def extract():
         detect_boxes(data, dilated)
 
 
-        print "number of labels", unique
         return ""
 
         pylab.figure()
@@ -197,10 +196,12 @@ def detect_boxes(raw_data, vol):
     # determine unique cell labels
     unique = range(2, numpy.max(a))
 
+    num_kept = 0
+
     for idx in unique:
 
         # TODO make sure order is correct
-        pz, py, px = numpy.where(a == idx)
+        py, px, pz = numpy.where(a == idx)
 
         assert len(pz) == len(py) == len(px)
 
@@ -221,21 +222,43 @@ def detect_boxes(raw_data, vol):
         for i in xrange(len(tx)):
             tvol[tx[i], ty[i], tz[i]] = raw_data[px[i], py[i], pz[i]]
 
-
         # write volume
-        #tvol_numpy = numpy.array(tvol, dtype=numpy.uint8)
-        tvol_numpy = numpy.array(tvol, dtype=numpy.float32)
-        #writeVolume(tvol_numpy, "test/vol_", "tiff")
-        #writeSlices(tvol_numpy, "test/vol_", "tiff")
-        #writeVolume(tvol_numpy, fn_base = "test/vol_", filename_ext="tiff", dtype = '', compression = '')
+        fn_prefix = "test/vol_idx=%02d" % (idx)
 
-        for z in xrange(d_z):
-            img = tvol_numpy[:,:,z]
-            fn_base = "test/vol_%i" % (z)
-            fn_ext = "png"
-            #writeVolume(tvol_numpy, fn_base, fn_ext, dtype = '', compression = '')
-            writeImage(tvol_numpy, fn_base, fn_ext)
+        # do some basic filtering
+        if d_x > 15 and d_y > 15 and d_z > 15:
+            num_kept += 1
+            write_volume(tvol, fn_prefix)
 
+    print "keeping %i nuclei" % (num_kept)
+
+
+
+def write_volume(vol, fn_prefix):
+    """
+    write volume using python's Image lib
+    """
+
+    import Image
+
+    for z in xrange(vol.shape[2]):
+        img = vol[:,:,z]
+        fn_base = "%s_%02d.png" % (fn_prefix, z)
+        fn_ext = "PNG"
+
+        im = Image.fromarray(img)
+        im.convert('L').save(fn_base, fn_ext)
+
+
+def write_volume_vigra(vol):
+    """
+    write volume using vigra (codec seems to be missing)
+    """
+
+    fn_base = "test/vol_%i"
+    fn_ext = "tiff"
+    #writeVolume(tvol_numpy, fn_base, fn_ext, dtype = '', compression = '')
+    writeVolume(tvol_numpy, fn_base, fn_ext)
 
 
 if __name__ == "__main__":
