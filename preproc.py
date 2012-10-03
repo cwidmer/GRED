@@ -48,8 +48,6 @@ def load_data3D():
 def plot_image_show(data, title=""):
 
 
-    return ""
-
     #TODO implement for volumes
     mid_z = data.shape[2] / 2
     dat2d = data[:,:,mid_z]
@@ -94,7 +92,7 @@ def extract():
     data = load_data3D()
    
     #scales = numpy.linspace(3, 15, 4)
-    scales = numpy.array([5.0])
+    scales = numpy.array([6.0])
     closing = True
     opening = False
     window = 3
@@ -243,8 +241,8 @@ def write_volume(vol, fn_prefix):
 
     for z in xrange(vol.shape[2]):
         img = vol[:,:,z]
-        fn_base = "%s_%02d.png" % (fn_prefix, z)
-        fn_ext = "PNG"
+        fn_base = "%s_%02d.tif" % (fn_prefix, z)
+        fn_ext = "TIFF"
 
         im = Image.fromarray(img)
         im.convert('L').save(fn_base, fn_ext)
