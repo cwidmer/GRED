@@ -147,11 +147,10 @@ def extract():
         print "dilated.shape", dilated.shape
 
         # heart piece
-        dilated_numpy = numpy.array(seeds, dtype=numpy.uint8)
-        labels = vigra.analysis.labelVolume(dilated_numpy)
-        #detect_boxes(data, dilated)
 
-        unique = range(2, numpy.max(labels))
+        # 
+        detect_boxes(data, dilated_numpy)
+
 
         print "number of labels", unique
         return ""
@@ -172,32 +171,37 @@ def extract():
     #vigra.analysis.labelImage()
 
 
-def detect_boxes(raw_data, image):
+def detect_boxes(raw_data, vol):
     """
     routine to automatically detect boxes in segmented image
     """
 
-    labels = vigra.analysis.labelVolume(image)
+    dilated_numpy = numpy.array(seeds, dtype=numpy.uint8)
+
+    labels = vigra.analysis.labelVolume(vol)
     plot_image_show(labels, title="labels")
 
     a = numpy.array(labels)
     unique = range(2, numpy.max(a))
 
-    return ""
-
-    pylab.figure()
-    #plot_image(labels == idx, title="labels")
-    plot_image(raw_data, title="labels")
+    #pylab.figure()
+    #plot_image(raw_data, title="labels")
 
 
     for idx in unique:
 
-        py, px = numpy.where(a == idx)
+        pz, py, px = numpy.where(a == idx)
+
+        # TODO make sure order is correct
+        assert max(pz) < max(px)
 
         x_left = min(px)
         x_right = max(px)
         y_top = max(py)
         y_bot = min(py)
+
+        z_top = max(pz)
+        z_bot = min(pz)
 
         print "idx", idx
         print "x_l, x_r", x_left, x_right
@@ -208,14 +212,14 @@ def detect_boxes(raw_data, image):
         #pointListX = [10, 20, 20, 10]
         #pointListY = [10, 10, 20, 20]
 
-
-        pointListX = [x_left,x_right,x_right,x_left]
-        pointListY = [y_bot,y_bot,y_top,y_top]
+        pointListX = [x_left,x_right,x_right,x_left, x_left,x_right,x_right,x_left]
+        pointListY = [y_bot,y_bot,y_top,y_top, y_bot,y_bot,y_top,y_top]
+        pointListZ = [z_bot, z_bot, z_bot, z_bot, z_top, z_top, z_top, z_top]
         #xyList = zip(pointListX, pointListY)
         #p = Polygon( xyList, alpha=0.2 )
         #pylab.gca().add_artist(p)
 
-        pylab.fill(pointListX, pointListY, 'r', alpha=0.4, edgecolor='r')
+        #pylab.fill(pointListX, pointListY, 'r', alpha=0.4, edgecolor='r')
 
         #
         #pylab.axvline(x=x_left, ymin=y_top, ymax=y_bot)
