@@ -41,6 +41,7 @@ from data_processing import artificial_data, load_tif, threshold_volume #, gener
 from volume_slicer_simple import SimpleSlicerQWidget
 from histogram_widget import HistogramQWidget
 from batch_dialog import BatchDialog
+from preproc_dialog import PreprocDialog
 
 
 
@@ -284,6 +285,10 @@ class ControlWidget(QtGui.QWidget):
         self.layout.setSpacing(0)
 
         # add buttons
+        self.button_preproc = QtGui.QPushButton('Preprocess', self)
+        self.button_preproc.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.layout.addWidget(self.button_preproc)
+
         self.button_dat = QtGui.QPushButton('Add Dataset', self)
         self.button_dat.setFocusPolicy(QtCore.Qt.NoFocus)
         self.layout.addWidget(self.button_dat)   
@@ -522,6 +527,7 @@ class MainWidget(QtGui.QTreeWidget):
         self.connect(control_widget.button_eval, QtCore.SIGNAL('clicked()'), self.evaluate)
         self.connect(control_widget.button_export, QtCore.SIGNAL('clicked()'), self.export)
         self.connect(control_widget.button_batch, QtCore.SIGNAL('clicked()'), self.batch)
+        self.connect(control_widget.button_preproc, QtCore.SIGNAL('clicked()'), self.preproc)
         self.connect(control_widget.button_save, QtCore.SIGNAL('clicked()'), self.save)
         self.connect(control_widget.spin_radius, QtCore.SIGNAL('valueChanged(double)'), self.update_radius_offset)
         self.connect(control_widget, QtCore.SIGNAL('superDirectoryChanged(PyQt_PyObject)'), self.add_all_datasets)
@@ -783,6 +789,17 @@ class MainWidget(QtGui.QTreeWidget):
                     print detail
 
             print "batch processing done."
+
+
+    def preproc(self):
+        """
+        performs preproc processing with settings from preproc_dialog
+        """
+
+        dlg = PreprocDialog()
+        if dlg.exec_():
+            values = dlg.getValues()
+
 
 
 def fix_legacy_paths(dataset):
