@@ -10,6 +10,7 @@
 """
 
 import os
+import Image
 
 import vigra.filters
 from vigra.impex import writeVolume, writeImage
@@ -163,7 +164,7 @@ def extract():
         # heart piece
 
         # 
-        detect_boxes(data, dilated)
+        detect_boxes(data, data_green, dilated)
 
 
         return ""
@@ -184,7 +185,7 @@ def extract():
     #vigra.analysis.labelImage()
 
 
-def detect_boxes(raw_data, vol):
+def detect_boxes(data_red, data_grn, vol):
     """
     routine to automatically detect boxes in segmented image
     """
@@ -214,7 +215,8 @@ def detect_boxes(raw_data, vol):
         d_z = int(max(pz) - min(pz)) + 1
 
         # set up target volume
-        tvol = vigra.ScalarVolume((d_x, d_y, d_z))
+        tvol_red = vigra.ScalarVolume((d_x, d_y, d_z))
+        tvol_grn = vigra.ScalarVolume((d_x, d_y, d_z))
 
         # translate into target coordinates
         tx = numpy.array(px) - min(px)
@@ -223,30 +225,35 @@ def detect_boxes(raw_data, vol):
 
         # copy point to new volume
         for i in xrange(len(tx)):
-            tvol[tx[i], ty[i], tz[i]] = raw_data[px[i], py[i], pz[i]]
+            tvol_red[tx[i], ty[i], tz[i]] = data_red[px[i], py[i], pz[i]]
+            tvol_grn[tx[i], ty[i], tz[i]] = data_grn[px[i], py[i], pz[i]]
 
         # write volume
-        fn_prefix = "test/vol_idx=%02d" % (idx)
 
         # do some basic filtering
         if d_x > 10 and d_y > 10 and d_z > 10:
             num_kept += 1
-            write_volume(tvol, fn_prefix)
+
+            out_dir = "test/cell_idx_%03d" % (idx)
+            write_volume(tvol_red, out_dir, "w617")
+            write_volume(tvol_grn, out_dir, "w528")
 
     print "keeping %i nuclei" % (num_kept)
 
 
 
-def write_volume(vol, fn_prefix):
+def write_volume(vol, out_dir, color):
     """
     write volume using python's Image lib
     """
 
-    import Image
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
 
     for z in xrange(vol.shape[2]):
         img = vol[:,:,z]
-        fn_base = "%s_%02d.tif" % (fn_prefix, z)
+
+        fn_base = "%s/layer_%02d_%s.tif" % (out_dir, z, color)
         fn_ext = "TIFF"
 
         im = Image.fromarray(img)
