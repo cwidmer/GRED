@@ -20,13 +20,13 @@ import pylab
 from matplotlib.patches import Polygon
 
 
-def load_data3D():
+def load_data3D(target):
     """
     load stack of tiffs
     """
 
     tif_dir = "data/whole_volume/20091026_SK570_590_4.5um_10_R3D_CAL_01_D3D" #data/whole_volume/20091026_SK570_590_4.5um_13_R3D_CAL_01_D3D/"
-    tiffs = [os.path.join(str(tif_dir), f) for f in os.listdir(tif_dir) if f.endswith(".tif")]
+    tiffs = [os.path.join(str(tif_dir), f) for f in os.listdir(tif_dir) if f.endswith(".tif") and f.find(target) != -1]
     tiffs.sort()
 
     # grab dimensions
@@ -89,10 +89,12 @@ def extract():
     """
 
     # get data
-    data = load_data3D()
-   
-    scales = numpy.linspace(1.2, 4, 3)
+    data = load_data3D("w617")
+    data_green = load_data3D("w528")
+
+    #scales = numpy.linspace(2.2, 6, 3)
     #scales = numpy.array([6.0])
+    scales = numpy.array([5.0])
     #scales = numpy.array([3.0])
     closing = True
     opening = False
@@ -146,14 +148,13 @@ def extract():
 
         
         plot_image_show(seeds, title="seeds")
-        continue
 
         seed_img = numpy.array(seeds, dtype=numpy.uint8)
 
         closed = vigra.filters.discClosing(seed_img, 3)
         plot_image_show(closed, title="closed seed")
 
-        dilated = vigra.filters.discDilation(closed, 5)
+        dilated = vigra.filters.discDilation(closed, 3)
         plot_image_show(dilated, title="dilated seed")
 
 
@@ -228,7 +229,7 @@ def detect_boxes(raw_data, vol):
         fn_prefix = "test/vol_idx=%02d" % (idx)
 
         # do some basic filtering
-        if d_x > 15 and d_y > 15 and d_z > 15:
+        if d_x > 10 and d_y > 10 and d_z > 10:
             num_kept += 1
             write_volume(tvol, fn_prefix)
 
