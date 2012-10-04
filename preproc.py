@@ -20,8 +20,6 @@ import numpy
 import pylab
 from matplotlib.patches import Polygon
 
-import skimage.io
-
 
 def load_data3D(target):
     """
@@ -33,7 +31,6 @@ def load_data3D(target):
     tiffs.sort()
 
     # grab dimensions
-
     dim_x, dim_y = vigra.impex.readImage(tiffs[0]).shape
     dim_z = len(tiffs)
 
@@ -199,59 +196,103 @@ def detect_boxes(data_red, data_grn, vol):
     labels = vigra.analysis.labelVolume(labels_numpy)
     plot_image_show(labels, title="labels")
 
-    a = numpy.array(labels)
 
     # determine unique cell labels
-    unique = range(2, numpy.max(a))
+    unique = range(2, numpy.max(labels))
 
     num_kept = 0
 
     for idx in unique:
 
-        px, py, pz = numpy.where(a == idx)
-
-        assert len(pz) == len(py) == len(px)
-
-        # determine dimensions
-        d_x = int(max(px) - min(px)) + 1
-        d_y = int(max(py) - min(py)) + 1
-        d_z = int(max(pz) - min(pz)) + 1
-
-        # set up target volume
-        #tvol_red = vigra.ScalarVolume((d_x, d_y, d_z))
-        #tvol_grn = vigra.ScalarVolume((d_x, d_y, d_z))
-        tvol_red = numpy.zeros((d_x, d_y, d_z))
-        tvol_grn = numpy.zeros((d_x, d_y, d_z))
-
-        # min on each axis
-        mx = min(px)
-        my = min(py)
-        mz = min(pz)
-
-        # copy box
-        for i in xrange(d_x):
-            for j in xrange(d_y):
-                for k in xrange(d_z):
-
-                    tx = mx + i
-                    ty = my + j
-                    tz = mz + k
-
-                    tvol_red[i, j, k] = data_red[tx, ty, tz]
-                    tvol_grn[i, j, k] = data_grn[tx, ty, tz]
-
+        # set up target volumes
+        tvol_red = cut_region(data_red, labels, idx)
+        tvol_grn = cut_box(data_grn, labels, idx)
 
         # do some basic filtering
-        if d_x > 10 and d_y > 10 and d_z > 10:
+        if tvol_red.shape[0] > 10 and tvol_red.shape[1] > 10 and tvol_red.shape[2] > 10:
             num_kept += 1
 
             out_dir = "test/cell_idx_%03d" % (idx)
             write_volume(tvol_red, out_dir, "w617")
             write_volume(tvol_grn, out_dir, "w528")
 
+
     print "keeping %i nuclei" % (num_kept)
 
 
+
+def cut_region(raw, labels, target_label):
+    """
+    cut out labeled voxels only
+    """
+
+    a = numpy.array(labels)
+    px, py, pz = numpy.where(a == target_label)
+
+    assert len(pz) == len(py) == len(px)
+
+    # determine dimensions
+    d_x = int(max(px) - min(px)) + 1
+    d_y = int(max(py) - min(py)) + 1
+    d_z = int(max(pz) - min(pz)) + 1
+
+    # set up target volume
+    vol_new = numpy.zeros((d_x, d_y, d_z))
+
+    # min on each axis
+    mx = min(px)
+    my = min(py)
+    mz = min(pz)
+
+    # copy box
+    for i in xrange(d_x):
+        for j in xrange(d_y):
+            for k in xrange(d_z):
+
+                tx = mx + i
+                ty = my + j
+                tz = mz + k
+
+                vol_new[i, j, k] = raw[tx, ty, tz]
+
+    return vol_new
+
+
+def cut_box(raw, labels, target_label):
+    """
+    cut out entire box
+    """
+
+    a = numpy.array(labels)
+    px, py, pz = numpy.where(a == target_label)
+
+    assert len(pz) == len(py) == len(px)
+
+    # determine dimensions
+    d_x = int(max(px) - min(px)) + 1
+    d_y = int(max(py) - min(py)) + 1
+    d_z = int(max(pz) - min(pz)) + 1
+
+    # set up target volume
+    vol_new = numpy.zeros((d_x, d_y, d_z))
+
+    # min on each axis
+    mx = min(px)
+    my = min(py)
+    mz = min(pz)
+
+    # copy box
+    for i in xrange(d_x):
+        for j in xrange(d_y):
+            for k in xrange(d_z):
+
+                tx = mx + i
+                ty = my + j
+                tz = mz + k
+
+                vol_new[i, j, k] = raw[tx, ty, tz]
+
+    return vol_new
 
 
 def write_volume(vol, out_dir, color):
