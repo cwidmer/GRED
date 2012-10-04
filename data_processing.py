@@ -5,7 +5,6 @@
 
 """
 @author: Christian Widmer
-
 @summary: procedures to load and handle voxel data
 
 """
@@ -91,7 +90,9 @@ def threshold_volume(vol, threshold, std_cut):
     b = b.reshape(vol.shape)
 
     # clear outliers
-    vol = crop_data(b)
+    #TODO bring back
+    #vol = crop_data(b)
+    vol = b
 
     # create points from volume
     d_x = []
@@ -110,7 +111,9 @@ def threshold_volume(vol, threshold, std_cut):
                     d_intensity.append(vol[idx_x, idx_y, idx_z])
 
     # cut points based on distance to center
-    keep = cut_points(d_x, d_y, d_z, std_cut=std_cut)
+    #TODO bring back
+    #keep = cut_points(d_x, d_y, d_z, std_cut=std_cut)
+    keep = range(len(d_x))
 
     # select keepers
     d_x = numpy.array(d_x)[keep]
@@ -242,7 +245,6 @@ def possiblesuccessors(vol, p, thres):
     return successors
 
 
-
 def generate_sphere_full():
     """
     sample data from sphere
@@ -272,6 +274,7 @@ def generate_sphere_full():
 
 
     return data_x, data_y, data_z, data_intensity, volume
+
 
 def artificial_data():
     """

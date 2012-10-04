@@ -20,6 +20,8 @@ import numpy
 import pylab
 from matplotlib.patches import Polygon
 
+import skimage.io
+
 
 def load_data3D(target):
     """
@@ -31,6 +33,7 @@ def load_data3D(target):
     tiffs.sort()
 
     # grab dimensions
+
     dim_x, dim_y = vigra.impex.readImage(tiffs[0]).shape
     dim_z = len(tiffs)
 
@@ -48,6 +51,7 @@ def load_data3D(target):
 
 def plot_image_show(data, title=""):
 
+    return ""
 
     #TODO implement for volumes
     mid_z = data.shape[2] / 2
@@ -204,8 +208,7 @@ def detect_boxes(data_red, data_grn, vol):
 
     for idx in unique:
 
-        # TODO make sure order is correct
-        py, px, pz = numpy.where(a == idx)
+        px, py, pz = numpy.where(a == idx)
 
         assert len(pz) == len(py) == len(px)
 
@@ -215,20 +218,28 @@ def detect_boxes(data_red, data_grn, vol):
         d_z = int(max(pz) - min(pz)) + 1
 
         # set up target volume
-        tvol_red = vigra.ScalarVolume((d_x, d_y, d_z))
-        tvol_grn = vigra.ScalarVolume((d_x, d_y, d_z))
+        #tvol_red = vigra.ScalarVolume((d_x, d_y, d_z))
+        #tvol_grn = vigra.ScalarVolume((d_x, d_y, d_z))
+        tvol_red = numpy.zeros((d_x, d_y, d_z))
+        tvol_grn = numpy.zeros((d_x, d_y, d_z))
 
-        # translate into target coordinates
-        tx = numpy.array(px) - min(px)
-        ty = numpy.array(py) - min(py)
-        tz = numpy.array(pz) - min(pz)
+        # min on each axis
+        mx = min(px)
+        my = min(py)
+        mz = min(pz)
 
-        # copy point to new volume
-        for i in xrange(len(tx)):
-            tvol_red[tx[i], ty[i], tz[i]] = data_red[px[i], py[i], pz[i]]
-            tvol_grn[tx[i], ty[i], tz[i]] = data_grn[px[i], py[i], pz[i]]
+        # copy box
+        for i in xrange(d_x):
+            for j in xrange(d_y):
+                for k in xrange(d_z):
 
-        # write volume
+                    tx = mx + i
+                    ty = my + j
+                    tz = mz + k
+
+                    tvol_red[i, j, k] = data_red[tx, ty, tz]
+                    tvol_grn[i, j, k] = data_grn[tx, ty, tz]
+
 
         # do some basic filtering
         if d_x > 10 and d_y > 10 and d_z > 10:
@@ -242,10 +253,15 @@ def detect_boxes(data_red, data_grn, vol):
 
 
 
+
 def write_volume(vol, out_dir, color):
     """
     write volume using python's Image lib
     """
+
+    #import pylab
+    #pylab.hist(vol.flatten(), bins=100)
+    #pylab.show()
 
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
@@ -256,19 +272,27 @@ def write_volume(vol, out_dir, color):
         fn_base = "%s/layer_%02d_%s.tif" % (out_dir, z, color)
         fn_ext = "TIFF"
 
+        #skimage.io.imsave(fn_base, img)
         im = Image.fromarray(img)
-        im.convert('L').save(fn_base, fn_ext)
+
+        #print im.size
+        #print im.mode
+        #table=[ i/256 for i in range(65536) ]
+        #im2 = im.point(table,'L')
+
+        #im.convert('L').save(fn_base, fn_ext)
+        im.save(fn_base, fn_ext)
 
 
-def write_volume_vigra(vol):
+def write_volume_vigra(vol, out_dir, color):
     """
     write volume using vigra (codec seems to be missing)
     """
 
-    fn_base = "test/vol_%i"
-    fn_ext = "tiff"
+    fn_base = "%s/layer_%s.tif" % (out_dir, color)
+    fn_ext = "tif"
     #writeVolume(tvol_numpy, fn_base, fn_ext, dtype = '', compression = '')
-    writeVolume(tvol_numpy, fn_base, fn_ext)
+    writeVolume(vol, fn_base, fn_ext)
 
 
 if __name__ == "__main__":
