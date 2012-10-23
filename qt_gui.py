@@ -733,7 +733,8 @@ class MainWidget(QtGui.QTreeWidget):
         if not file_name == "":
             try:
                 f = file(file_name)
-                self.datasets = fix_legacy_paths(cPickle.load(f))
+                #self.datasets = fix_legacy_paths(cPickle.load(f))
+                self.datasets = cPickle.load(f)
 
                 for tif_dir, dataset in self.datasets.items():
                      self.emit(QtCore.SIGNAL('newKey(PyQt_PyObject)'), tif_dir)
