@@ -90,9 +90,7 @@ def threshold_volume(vol, threshold, std_cut):
     b = b.reshape(vol.shape)
 
     # clear outliers
-    #TODO bring back
-    #vol = crop_data(b)
-    vol = b
+    vol = crop_data(b)
 
     # create points from volume
     d_x = []
@@ -111,9 +109,7 @@ def threshold_volume(vol, threshold, std_cut):
                     d_intensity.append(vol[idx_x, idx_y, idx_z])
 
     # cut points based on distance to center
-    #TODO bring back
-    #keep = cut_points(d_x, d_y, d_z, std_cut=std_cut)
-    keep = range(len(d_x))
+    keep = cut_points(d_x, d_y, d_z, std_cut=std_cut)
 
     # select keepers
     d_x = numpy.array(d_x)[keep]
