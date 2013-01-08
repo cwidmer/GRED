@@ -1,7 +1,7 @@
 #!/usr/bin/env python2.5
 #
-# Written (W) 2011-2012 Christian Widmer
-# Copyright (C) 2011-2012 Max-Planck-Society
+# Written (W) 2011-2013 Christian Widmer
+# Copyright (C) 2011-2013 Max-Planck-Society
 
 """
 @author: Christian Widmer
@@ -13,15 +13,10 @@
 #solvers.options['feastol'] = 1e-1
 
 from collections import defaultdict
-
-import scipy.optimize
-import numpy
-import loss_functions
-import util
 from util import Ellipse
 
+import numpy
 import cvxmod
-import sympy
 
 
 def fit_ellipse_stack(dx, dy, dz, di):
@@ -662,7 +657,12 @@ def fit_ellipse_stack_abs(dx, dy, dz, di):
 
         # intensities
         i = numpy.array(dat[z])[:,2]
-        ity = numpy.diag(i) / mean_di
+
+        # log intensities
+        i = numpy.log(i)
+
+        # create matrix
+        ity = numpy.diag(i)# / mean_di
 
         # dimensionality
         N = len(x)
@@ -681,10 +681,12 @@ def fit_ellipse_stack_abs(dx, dy, dz, di):
         #d[:,3] = x
         #d[:,4] = y
         #d[:,5] = numpy.ones(N)
-    
+
+        print "old", d
         # consider intensities
         old_shape = d.shape
-        #d = numpy.dot(ity, d)
+        d = numpy.dot(ity, d)
+        print "new", d
         assert d.shape == old_shape
     
         print d.shape   
@@ -707,6 +709,7 @@ def fit_ellipse_stack_abs(dx, dy, dz, di):
     # construct obj
     objective = 0
 
+    # loss term
     for i in xrange(M):
         objective += cvxmod.atoms.norm1(X_matrix[i] * thetas[i])
 
@@ -821,4 +824,5 @@ if __name__ == "__main__":
     fit1 = fit_ellipse_stack_abs(dx, dy, dz, di)
     #fit1 = fit_ellipse_stack_squared(dx, dy, dz, di)
 
+    
 

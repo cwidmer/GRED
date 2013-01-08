@@ -78,7 +78,7 @@ def load_tif(threshold, hist):
     load data file
     """
 
-    tif_dir = "data/20091026_SK570_578_4.5um_1_R3D_CAL_02_D3D_CPY_Mad1/"
+    tif_dir = "data/data/20091026_SK570_578_4.5um_1_R3D_CAL_02_D3D_CPY_Mad1/"
     tiffs = [tif_dir + f for f in os.listdir(tif_dir) if f.endswith(".tif")]
     tiffs.sort()
 
