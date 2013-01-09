@@ -743,18 +743,15 @@ def fit_ellipse_stack_abs(dx, dy, dz, di):
         #p.constr.append(0 <= eps_slacks[i])
     """
 
-    for i in xrange(1,M):
+    for i in xrange(1,M-1):
         p.constr.append(thetas[i][0] + thetas[i][1] == 1.0) # A + C = 1
         #p.constr.append(4 * thetas[i][0] * thetas[i][1] == 1.0) # 4AC - B^2 = 1
         #p.constr.append(thetas[i][4] == 1.0) # F = 1
 
     # pinch ends
-    #TODO not sure how to 
-    p.constr.append(thetas[0][0] <= 1.0) # A = 1
-    p.constr.append(thetas[0][1] <= 1.0) # C = 1
-    p.constr.append(thetas[-1][0] <= 1.0) # A = 1
-    p.constr.append(thetas[-1][1] <= 1.0) # C = 1
-    
+    p.constr.append(cvxmod.sum(thetas[0]) >= -0.01)
+    p.constr.append(cvxmod.sum(thetas[-1]) >= -0.01)
+
     print p
 
     ###### set values
@@ -797,7 +794,10 @@ def fit_ellipse_stack_abs(dx, dy, dz, di):
         A[1,1]         = w[1]
         bv             = w[2:4]
         c              = w[4]
-                
+        
+        if i==0:
+            print "AAAAAAAAAAAAAA"
+            print A,bv,c
         ## find parameters
         import fit_ellipse
         z, a, b, alpha = fit_ellipse.conic2parametric(A, bv, c)
