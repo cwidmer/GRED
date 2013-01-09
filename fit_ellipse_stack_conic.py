@@ -488,7 +488,7 @@ def fit_ellipse_stack_squared(dx, dy, dz, di):
 
     X_matrix = []
     thetas = []
-    mean_di = float(numpy.mean(di))
+
 
     for z in dat.keys():
 
@@ -497,7 +497,12 @@ def fit_ellipse_stack_squared(dx, dy, dz, di):
 
         # intensities
         i = numpy.array(dat[z])[:,2]
-        ity = numpy.diag(i) / mean_di
+
+        # log intensities
+        i = numpy.log(i)
+
+        # create matrix
+        ity = numpy.diag(i)
 
         # dimensionality
         N = len(x)
@@ -565,6 +570,7 @@ def fit_ellipse_stack_squared(dx, dy, dz, di):
     
     
     ###### set values
+    print "ARRRRRRRRRRRR"
     p.solve()
     
 
@@ -719,7 +725,8 @@ def fit_ellipse_stack_abs(dx, dy, dz, di):
     for i in xrange(M-1):
         objective += reg_const * cvxmod.norm1(thetas[i] - thetas[i+1])
 
-    objective += 100*cvxmod.norm1(thetas[0])
+    #TODO what is this
+    #objective += 100*cvxmod.norm1(thetas[0])
     #print objective
 
     # create problem                                    
@@ -736,18 +743,19 @@ def fit_ellipse_stack_abs(dx, dy, dz, di):
         #p.constr.append(0 <= eps_slacks[i])
     """
 
-    for i in xrange(M):
+    for i in xrange(1,M):
         p.constr.append(thetas[i][0] + thetas[i][1] == 1.0) # A + C = 1
         #p.constr.append(4 * thetas[i][0] * thetas[i][1] == 1.0) # 4AC - B^2 = 1
         #p.constr.append(thetas[i][4] == 1.0) # F = 1
+
+    # pinch ends
+    #TODO not sure how to 
+    p.constr.append(thetas[0][0] <= 1.0) # A = 1
+    p.constr.append(thetas[0][1] <= 1.0) # C = 1
+    p.constr.append(thetas[-1][0] <= 1.0) # A = 1
+    p.constr.append(thetas[-1][1] <= 1.0) # C = 1
     
     print p
-
-    """
-    problem = p
-    import ipdb
-    ipdb.set_trace()
-    """
 
     ###### set values
     from cvxopt import solvers
@@ -821,8 +829,8 @@ if __name__ == "__main__":
     dx, dy, dz, di, v = data_processing.artificial_data()
     #fit = fit_ellipse_stack_scipy(dx, dy, dz, di)
     #fit1 = fit_ellipse_stack(dx, dy, dz, di)
-    fit1 = fit_ellipse_stack_abs(dx, dy, dz, di)
-    #fit1 = fit_ellipse_stack_squared(dx, dy, dz, di)
+    #fit1 = fit_ellipse_stack_abs(dx, dy, dz, di)
+    fit1 = fit_ellipse_stack_squared(dx, dy, dz, di)
 
     
 
