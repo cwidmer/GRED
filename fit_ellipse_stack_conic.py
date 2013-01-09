@@ -5,9 +5,8 @@
 
 """
 @author: Christian Widmer
-@summary: Module that provides a collection of strategies to fit a set
-          of ellipses to data.
-
+@summary: Module that provides a collection of strategies 
+          to fit a stack of ellipses to data.
 """
 
 #solvers.options['feastol'] = 1e-1
@@ -21,7 +20,7 @@ import cvxmod
 
 def fit_ellipse_stack(dx, dy, dz, di):
     """
-    fit ellipoid beased on data
+    fit ellipse stack using gradient descend
     """
 
     # sanity check
@@ -40,8 +39,8 @@ def fit_ellipse_stack(dx, dy, dz, di):
     ellipse_stack = {}
 
     for z in dat.keys():
-        x_layer = numpy.array(dat[z])[:,0]
-        y_layer = numpy.array(dat[z])[:,1]
+        x_layer = numpy.array(dat[z])[:, 0]
+        y_layer = numpy.array(dat[z])[:, 1]
 
         # fit ellipse
         try:
@@ -196,7 +195,7 @@ def fitting_obj_stack_gradient(param, dx, dy, dz, di, loss):
 
 def fit_ellipse_eps_insensitive(x, y):
     """
-    fit ellipoid using epsilon-insensitive loss
+    fit ellipse using epsilon-insensitive loss
     """
 
     x = numpy.array(x)
@@ -725,12 +724,9 @@ def fit_ellipse_stack_abs(dx, dy, dz, di):
     for i in xrange(M-1):
         objective += reg_const * cvxmod.norm1(thetas[i] - thetas[i+1])
 
-    #TODO what is this
-    #objective += 100*cvxmod.norm1(thetas[0])
-    #print objective
 
     # create problem                                    
-    p = cvxmod.problem(cvxmod.minimize(objective))
+    prob = cvxmod.problem(cvxmod.minimize(objective))
 
     # add constraints
     """
@@ -743,16 +739,15 @@ def fit_ellipse_stack_abs(dx, dy, dz, di):
         #p.constr.append(0 <= eps_slacks[i])
     """
 
-    for i in xrange(1,M-1):
-        p.constr.append(thetas[i][0] + thetas[i][1] == 1.0) # A + C = 1
-        #p.constr.append(4 * thetas[i][0] * thetas[i][1] == 1.0) # 4AC - B^2 = 1
-        #p.constr.append(thetas[i][4] == 1.0) # F = 1
+    # add non-degeneracy constraints
+    for i in xrange(1, M-1):
+        prob.constr.append(thetas[i][0] + thetas[i][1] == 1.0) # A + C = 1
 
     # pinch ends
-    p.constr.append(cvxmod.sum(thetas[0]) >= -0.01)
-    p.constr.append(cvxmod.sum(thetas[-1]) >= -0.01)
+    prob.constr.append(cvxmod.sum(thetas[0]) >= -0.01)
+    prob.constr.append(cvxmod.sum(thetas[-1]) >= -0.01)
 
-    print p
+    print prob
 
     ###### set values
     from cvxopt import solvers
@@ -760,14 +755,8 @@ def fit_ellipse_stack_abs(dx, dy, dz, di):
     solvers.options['abstol'] = 1e-1
     print solvers.options
 
-    p.solve()
+    prob.solve()
     
-    #print p
-    #w = numpy.array(cvxmod.value(thetas))
-    #import ipdb
-    #ipdb.set_trace()
-    #print weights
-    #cvxmod.printval(thetas)
 
     # wrap up result
     ellipse_stack = {}
