@@ -1,8 +1,4 @@
 #!/usr/bin/env python2.5
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3 of the License, or
-# (at your option) any later version.
 #
 # Written (W) 2011-2013 Christian Widmer
 # Copyright (C) 2011-2013 Max-Planck-Society, TU-Berlin, MSKCC
@@ -16,7 +12,7 @@
 import random
 import numpy
 import pylab
-
+import math
 
 # def named tuple
 #from collections import namedtuple
@@ -108,6 +104,59 @@ class Ellipse(object):
         return dat
 
 
+def conic_to_ellipse(theta, use_rotation=False):
+    """
+    convert theta parameterization to Ellipse object
+    """
+
+    #TODO support rotation
+    ## For clarity, fill in the quadratic form variables
+    #A        = numpy.zeros((2,2))
+    #A[0,0]   = theta[0]
+    #A.ravel()[1:3] = theta[2]
+    #A[1,1]   = theta[1]
+    #bv       = theta[3:5]
+    #c        = theta[5]
+
+    A              = numpy.zeros((2,2))
+    A[0,0]         = theta[0]
+    A.ravel()[1:3] = 0 #theta[2]
+    A[1,1]         = theta[1]
+    bv             = theta[2:4]
+    c              = theta[4]
+    
+    ## find parameters
+    z, a, b, alpha = conic2parametric(A, bv, c)
+
+    return Ellipse(z[0], z[1], 0, a, b, alpha)
+
+
+def conic2parametric(A, bv, c):
+    """
+    convert conic parameterization to standard ellipse parameterization
+    """
+
+    ## Diagonalise A - find Q, D such at A = Q' * D * Q
+    D, Q = numpy.linalg.eig(A)
+    Q = Q.T
+    
+    ## If the determinant < 0, it's not an ellipse
+    if numpy.prod(D) <= 0:
+        raise RuntimeError, 'fitellipse:NotEllipse Linear fit did not produce an ellipse'
+    
+    ## We have b_h' = 2 * t' * A + b'
+    t = -0.5 * numpy.linalg.solve(A, bv)
+    
+    c_h = numpy.dot( numpy.dot( t.T, A ), t ) + numpy.dot( bv.T, t ) + c
+    
+    z = t
+    a = numpy.sqrt(-c_h / D[0])
+    b = numpy.sqrt(-c_h / D[1])
+    alpha = math.atan2(Q[0,1], Q[0,0])
+    
+    return z, a, b, alpha
+
+
 def ellipsoid(xc, yc, zc, xr, yr, zr, n=200):
     """
     sample points from ellipsoid
@@ -151,7 +200,7 @@ def plot_ellipse(cx, cy, cz, rx, ry, alpha, figure):
     n = 50
 
 
-    dat = ellipse(cx, cy, rx, ry, alpha, n)
+    dat = Ellipse(cx, cy, rx, ry, alpha).sample_uniform(n)
     #dat = ellipse(e.cx, e.cy, e.rx, e.ry, e.alpha, n)
     
     dx = dat[0]
@@ -170,18 +219,14 @@ def plot_ellipse(cx, cy, cz, rx, ry, alpha, figure):
                     )
 
 
-def plot_ellipse_stack(ellipse_stack, figure):
+def main():
     """
-    plot ellipse stack
+    main
     """
 
-    for e in ellipse_stack:
-        plot_ellipse(e, figure)
-
+    ellipse = Ellipse(1, 1, 0, 2, 3, 0)
+    ellipse.plot()
 
 
 if __name__ == "__main__":
-    
-    e = Ellipse(1,1,0,2,3,0)
-    e.plot()
-
+    main()

@@ -5,17 +5,13 @@
 
 """
 @author: Christian Widmer
-@summary: Module that provides a collection of strategies to fit a set
-          of ellipses to data.
-
+@summary: Uses cvxpy instead of cvxmod 
 """
 
 
 from collections import defaultdict
 
-import scipy.optimize
 import numpy
-import loss_functions
 import util
 from util import Ellipse
 
@@ -25,7 +21,6 @@ import cvxpy
 # % s/cvxpy.param(\(.\+\), \(.\))/cvxpy.parameter(\2, name=\1)/g
 # % s/cvxpy.param(\(.\+\), \(.\), \(.\))/cvxpy.parameter(\2, \3, name=\1)/g
 
-import sympy
 
 
 def fit_ellipse_stack(dx, dy, dz, di):
@@ -158,9 +153,7 @@ def fit_ellipse_eps_insensitive(x, y):
     c        = w[4]
     
     ## find parameters
-    import fit_ellipse
-    z, a, b, alpha = fit_ellipse.conic2parametric(A, bv, c)
-    print "XXX", z, a, b, alpha
+    z, a, b, alpha = util.conic2parametric(A, bv, c)
 
     return z, a, b, alpha
 
@@ -228,8 +221,7 @@ def fit_ellipse(x, y):
     c              = w[4]
 
     ## find parameters
-    import fit_ellipse
-    z, a, b, alpha = fit_ellipse.conic2parametric(A, bv, c)
+    z, a, b, alpha = util.conic2parametric(A, bv, c)
     print "XXX", z, a, b, alpha
 
     return z, a, b, alpha
@@ -237,7 +229,7 @@ def fit_ellipse(x, y):
 
 
 
-def fit_ellipse_stack(dx, dy, dz, di, norm_type="l2"):
+def fit_ellipse_stack2(dx, dy, dz, di, norm_type="l2"):
     """
     fit ellipoid using squared loss
 
@@ -402,8 +394,7 @@ def fit_ellipse_stack(dx, dy, dz, di, norm_type="l2"):
         c              = 1.0
                 
         ## find parameters
-        import fit_ellipse
-        z, a, b, alpha = fit_ellipse.conic2parametric(A, bv, c)
+        z, a, b, alpha = util.conic2parametric(A, bv, c)
         print "layer (i,z,a,b,alpha):", i, z, a, b, alpha
 
         layer = active_layers[i]

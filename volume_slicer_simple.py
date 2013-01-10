@@ -14,13 +14,10 @@
 """
 
 import copy
-import pylab
 from PyQt4 import QtGui, QtCore
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.cm as cm
-
-import util
 
 
 class SimpleSlicerQWidget(QtGui.QWidget):
@@ -101,7 +98,6 @@ class SimpleSlicerQWidget(QtGui.QWidget):
         self.axes_green.clear()
 
         self.axes.imshow(channel1, interpolation="nearest")
-        a = range(5)
         self.axes_green.imshow(channel2, interpolation="nearest", cmap=cm.Greys_r)
 
 

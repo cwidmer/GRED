@@ -1,12 +1,13 @@
 #!/usr/bin/env python2.5
 #
 # Written (W) 2011-2013 Christian Widmer
-# Copyright (C) 2011-2013 Max-Planck-Society
+# Copyright (C) 2011-2013 Max-Planck-Society, TU-Berlin, MSKCC
 
 """
 @author: Christian Widmer
-@summary: Module that provides a collection of strategies 
-          to fit a stack of ellipses to data.
+@summary: Procedures for fitting stacks of ellipses using 
+          conic parameterization
+
 """
 
 #solvers.options['feastol'] = 1e-1
@@ -16,30 +17,29 @@ from collections import defaultdict
 import numpy
 import cvxmod
 
-from util import Ellipse
-import fit_ellipse
+from util import Ellipse, conic_to_ellipse
 
 
-def fit_ellipse_stack(dx, dy, dz, di):
+def fit_ellipse_stack_decoupled(dx, dy, dz, di):
     """
-    fit ellipse stack using gradient descend
+    fit ellipse stack by independently fitting
+    each layer
     """
 
     # sanity check
-    assert len(dx) == len(dy)
-    assert len(dx) == len(dz)
-    assert len(dx) == len(di)
+    assert len(dx) == len(dy) == len(dz) == len(di)
 
     # unique zs
     dat = defaultdict(list)
 
-    # resort data
+    # resort data by layer
     for idx in range(len(dx)):
         dat[dz[idx]].append( [dx[idx], dy[idx]] )
 
     # init ret
     ellipse_stack = {}
 
+    # iterate over layers
     for z in dat.keys():
         x_layer = numpy.array(dat[z])[:, 0]
         y_layer = numpy.array(dat[z])[:, 1]
@@ -49,149 +49,14 @@ def fit_ellipse_stack(dx, dy, dz, di):
             [c, a, b, alpha] = fit_ellipse_squared(x_layer, y_layer)
             #[c, a, b, alpha] = fit_ellipse_linear(x_layer, y_layer)
             #[c, a, b, alpha] = fit_ellipse_eps_insensitive(x_layer, y_layer)
+
+            # reconstruct ellipse stack
             ellipse_stack[z] = Ellipse(c[0], c[1], z, a, b, alpha)
+
         except Exception, detail:
             print detail
 
-        #from pprint import pprint
-        #pprint( fitellipse(dat_layer, 'linear', constraint = 'bookstein') )
-        #pprint( fitellipse(dat_layer, 'linear', constraint = 'trace') )
-        #pprint( fitellipse(dat_layer, 'nonlinear') )
-
-        #pprint( fitellipse(dat_layer, 'linear', constraint = 'bookstein') )
-
-
     return ellipse_stack
-
-
-
-def fitting_obj_stack_gradient(param, dx, dy, dz, di, loss):
-    """
-    computes objective and gradient for smoothness-regularized least squares ellipse stack
-    """
-
-
-    # centers
-    cx = param[0]
-    cy = param[1]
-
-    wx = param[2]
-    wy = param[3]
-
-    #num_layers = len(set(z))
-    #assert len(param) == num_layers+2
-
-    radii = param[4:]
-
-    num_layers = len(radii) / 2
-
-    #print "num_layers", num_layers
-
-    radii_x = radii[0:num_layers]
-    radii_y = radii[num_layers:]
-
-    assert len(radii_x) == len(radii_y)
-
-    obj = 0
-
-    gradient_c = [0.0, 0.0]
-    gradient_w = [0.0, 0.0]
-    gradient_rx = [0.0]*(len(radii_x))
-    gradient_ry = [0.0]*(len(radii_y))
-
-    min_z = min(dz)
-    mean_di = float(numpy.mean(di))
-
-    for idx in range(len(dx)):
-
-        x = dx[idx]
-        y = dy[idx]
-        z = dz[idx]
-
-        # determine correct layer
-        z_idx = z - min_z
-
-        rx = radii_x[z_idx]
-        ry = radii_y[z_idx]
-
-        # normalized contribution
-        i = float(di[idx]) / mean_di
-
-        # loss obj and gradient
-        obj += i*loss.get_obj(x, y, z, cx, cy, wx, wy, rx, ry)
-        gradient_c[0] += i*loss.get_grad("cx", x, y, z, cx, cy, wx, wy, rx, ry)
-        gradient_c[1] += i*loss.get_grad("cy", x, y, z, cx, cy, wx, wy, rx, ry)
-        gradient_w[0] += i*loss.get_grad("wx", x, y, z, cx, cy, wx, wy, rx, ry)
-        gradient_w[1] += i*loss.get_grad("wy", x, y, z, cx, cy, wx, wy, rx, ry)
-        gradient_rx[z_idx] += i*loss.get_grad("rx", x, y, z, cx, cy, wx, wy, rx, ry)
-        gradient_ry[z_idx] += i*loss.get_grad("ry", x, y, z, cx, cy, wx, wy, rx, ry)
-
-
-    ############################
-    # smoothness regularizer using L2-regularization
-
-    reg_smoothness = True
-
-    if reg_smoothness:
-
-        for idx in xrange(num_layers-1):
-            
-            obj += (radii_x[idx] - radii_x[idx+1])**2
-            obj += (radii_y[idx] - radii_y[idx+1])**2
-
-            # compute gradient
-            if idx == 0:
-                gradient_rx[idx] += 2*radii_x[0] - 2*radii_x[1]
-                gradient_ry[idx] += 2*radii_y[0] - 2*radii_y[1]
-            else:
-                gradient_rx[idx] += 4*radii_x[idx] - 2*radii_x[idx-1] - 2*radii_x[idx+1]
-                gradient_ry[idx] += 4*radii_y[idx] - 2*radii_y[idx-1] - 2*radii_y[idx+1]
-
-        # last entry of gradient
-        gradient_rx[-1] += 2*radii_x[-1] - 2*radii_x[-2]
-        gradient_ry[-1] += 2*radii_y[-1] - 2*radii_y[-2]
-
-
-    ############################
-    # enfore small radii at the ends by means of L1-regularization
-
-    reg_end_param = 10
-    num_end_layers = 1
-
-    for idx in xrange(num_end_layers):
-        obj += reg_end_param*(radii_x[idx] + radii_x[-idx-1])
-        obj += reg_end_param*(radii_y[idx] + radii_y[-idx-1])
-
-        # last entry of gradient
-        gradient_rx[idx] += reg_end_param
-        gradient_rx[-idx-1] += reg_end_param
-        gradient_ry[idx] += reg_end_param
-        gradient_ry[-idx-1] += reg_end_param
-
-
-    # L1-regularize large radii
-    #for idx, rx in enumerate(radii_x):
-    #    obj += rx
-    #    gradient_rx[idx] += 1
-
-    # L1-regularize large radii
-    #for idx, ry in enumerate(radii_y):
-    #    obj += ry
-    #    gradient_ry[idx] += 1
-
-    # L1-regularize large w
-    reg_param_w = 5
-    obj += wx*reg_param_w
-    obj += wy*reg_param_w
-    gradient_w[0] += reg_param_w
-    gradient_w[1] += reg_param_w
-
-
-    # build final gradient
-    gradient = gradient_c + gradient_w + gradient_rx + gradient_ry
-
-    #return gradient
-    return obj, gradient
 
 
 
@@ -266,25 +131,10 @@ def fit_ellipse_eps_insensitive(x, y):
     p.solve()
     
     cvxmod.printval(theta)
+    theta_ = numpy.array(cvxmod.value(theta))
+    ellipse = conic_to_ellipse(theta_)
 
-    w = numpy.array(cvxmod.value(theta))
-    
-    #cvxmod.printval(s)
-    #cvxmod.printval(t)
-
-    ## For clarity, fill in the quadratic form variables
-    A        = numpy.zeros((2,2))
-    A[0,0]   = w[0]
-    A.ravel()[1:3] = 0#w[2]
-    A[1,1]   = w[1]
-    bv       = w[2:4]
-    c        = w[4]
-    
-    ## find parameters
-    z, a, b, alpha = fit_ellipse.conic2parametric(A, bv, c)
-    print "XXX", z, a, b, alpha
-
-    return z, a, b, alpha
+    return ellipse
 
 
 def fit_ellipse_linear(x, y):
@@ -359,26 +209,10 @@ def fit_ellipse_linear(x, y):
     p.solve()
     
     cvxmod.printval(theta)
+    theta_ = numpy.array(cvxmod.value(theta))
+    ellipse = conic_to_ellipse(theta_)
 
-    w = numpy.array(cvxmod.value(theta))
-    
-    #cvxmod.printval(s)
-    #cvxmod.printval(t)
-
-    ## For clarity, fill in the quadratic form variables
-    A        = numpy.zeros((2,2))
-    A[0,0]   = w[0]
-    A.ravel()[1:3] = w[2]
-    A[1,1]   = w[1]
-    bv       = w[3:5]
-    c        = w[5]
-    
-    ## find parameters
-    z, a, b, alpha = fit_ellipse.conic2parametric(A, bv, c)
-    print "XXX", z, a, b, alpha
-
-    return z, a, b, alpha
-
+    return ellipse
 
 
 def fit_ellipse_squared(x, y):
@@ -426,33 +260,15 @@ def fit_ellipse_squared(x, y):
     #solver = "mosek" 
     #p.solve(lpsolver=solver)
 
-    pro = p
-    #import ipdb
-    #ipdb.set_trace()
-
     p.solve()
-    
-
-    w = numpy.array(cvxmod.value(theta))
-    
-    #print weights
     
     cvxmod.printval(theta)
 
+    theta_ = numpy.array(cvxmod.value(theta))
+    ellipse = conic_to_ellipse(theta_)
 
-    ## For clarity, fill in the quadratic form variables
-    A              = numpy.zeros((2,2))
-    A[0,0]         = w[0]
-    A.ravel()[1:3] = 0 #w[2]
-    A[1,1]         = w[1]
-    bv             = w[2:4]
-    c              = w[4]
+    return ellipse
 
-    ## find parameters
-    z, a, b, alpha = fit_ellipse.conic2parametric(A, bv, c)
-    print "XXX", z, a, b, alpha
-
-    return z, a, b, alpha
 
 
 def fit_ellipse_stack_squared(dx, dy, dz, di):
@@ -543,8 +359,6 @@ def fit_ellipse_stack_squared(dx, dy, dz, di):
         thetas.append(theta)
 
 
-
-
     # contruct objective
     objective = 0
     for (i,X) in enumerate(X_matrix):
@@ -568,16 +382,8 @@ def fit_ellipse_stack_squared(dx, dy, dz, di):
     
     
     ###### set values
-    print "ARRRRRRRRRRRR"
     p.solve()
     
-
-    #print p
-    #w = numpy.array(cvxmod.value(thetas))
-    #import ipdb
-    #ipdb.set_trace()
-    #print weights
-    #cvxmod.printval(thetas)
 
     # wrap up result
     ellipse_stack = {}
@@ -585,33 +391,12 @@ def fit_ellipse_stack_squared(dx, dy, dz, di):
     active_layers = dat.keys()
     assert len(active_layers) == M
 
-
     for i in xrange(M):
 
-        w = numpy.array(cvxmod.value(thetas[i]))
-
-        ## For clarity, fill in the quadratic form variables
-        #A        = numpy.zeros((2,2))
-        #A[0,0]   = w[0]
-        #A.ravel()[1:3] = w[2]
-        #A[1,1]   = w[1]
-        #bv       = w[3:5]
-        #c        = w[5]
-
-        A              = numpy.zeros((2,2))
-        A[0,0]         = w[0]
-        A.ravel()[1:3] = 0 #w[2]
-        A[1,1]         = w[1]
-        bv             = w[2:4]
-        c              = w[4]
-                
-        ## find parameters
-        z, a, b, alpha = fit_ellipse.conic2parametric(A, bv, c)
-        print "layer (i,z,a,b,alpha):", i, z, a, b, alpha
-
-        layer = active_layers[i]
-        ellipse_stack[layer] = Ellipse(z[0], z[1], layer, a, b, alpha)
-
+        theta_ = numpy.array(cvxmod.value(thetas[i]))
+        z_layer = active_layers[i]
+        ellipse_stack[z_layer] = conic_to_ellipse(theta_)
+        ellipse_stack[z_layer].cz = z_layer
 
     return ellipse_stack
 
@@ -763,49 +548,19 @@ def fit_ellipse_stack_abs(dx, dy, dz, di):
     assert len(active_layers) == M
 
 
+    # reconstruct original parameterization
     for i in xrange(M):
 
-        w = numpy.array(cvxmod.value(thetas[i]))
-
-        ## For clarity, fill in the quadratic form variables
-        #A        = numpy.zeros((2,2))
-        #A[0,0]   = w[0]
-        #A.ravel()[1:3] = w[2]
-        #A[1,1]   = w[1]
-        #bv       = w[3:5]
-        #c        = w[5]
-
-        A              = numpy.zeros((2,2))
-        A[0,0]         = w[0]
-        A.ravel()[1:3] = 0 #w[2]
-        A[1,1]         = w[1]
-        bv             = w[2:4]
-        c              = w[4]
-        
-        ## find parameters
-        z, a, b, alpha = fit_ellipse.conic2parametric(A, bv, c)
-        print "layer (i,z,a,b,alpha):", i, z, a, b, alpha
-
-        layer = active_layers[i]
-        ellipse_stack[layer] = Ellipse(z[0], z[1], layer, a, b, alpha)
-
+        theta_ = numpy.array(cvxmod.value(thetas[i]))
+        z_layer = active_layers[i]
+        ellipse_stack[z_layer] = conic_to_ellipse(theta_)
+        ellipse_stack[z_layer].cz = z_layer
 
     return ellipse_stack
 
 
 
 if __name__ == "__main__":
-
-    """
-    import fit_circle
-    data_x, data_y, data_intensity = fit_circle.load_tif(160, True)
-    x = numpy.array(data_x)
-    y = numpy.array(data_y)
-
-    print fit_ellipse_squared(x, y)
-    """
-
-    print "="*40
 
     import data_processing
     dx, dy, dz, di, v = data_processing.artificial_data()

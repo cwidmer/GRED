@@ -1,16 +1,14 @@
 #!/usr/bin/env python2.5
 #
-# Written (W) 2011-2012 Christian Widmer
-# Copyright (C) 2011-2012 Max-Planck-Society
+# Written (W) 2011-2013 Christian Widmer
+# Copyright (C) 2011-2013 Max-Planck-Society, TU-Berlin, MSKCC
 
 """
 @author: Christian Widmer
-@summary: Module that provides a collection of strategies to fit a set
-          of ellipses to data.
+@summary: Provides routines for fitting ellipse stacks in original parameter space
 
 """
 
-from collections import defaultdict
 
 import scipy.optimize
 import numpy
@@ -18,55 +16,6 @@ import loss_functions
 import util
 from util import Ellipse
 from autowrapped_loss import Loss
-import sympy
-
-
-
-def fit_ellipse_stack(dx, dy, dz, di):
-    """
-    fit ellipoid beased on data
-    """
-    
-    # sanity check
-    assert len(dx) == len(dy)
-    assert len(dx) == len(dz)
-    assert len(dx) == len(di)
-
-    # unique zs
-    dat = defaultdict(list)
-
-    # resort data
-    for idx in range(len(dx)):
-        dat[dz[idx]].append( [dx[idx], dy[idx]] )
-
-    # init ret
-    ellipse_stack = []
-    for idx in range(max(dz)):
-        ellipse_stack.append(Ellipse(0, 0, idx, 1, 1, 0))
-    
-
-    for z in dat.keys():
-        x_layer = numpy.array(dat[z])[:,0]
-        y_layer = numpy.array(dat[z])[:,1]
-
-        # fit ellipse
-        try:
-            [c, a, b, alpha] = fit_ellipse_squared(x_layer, y_layer)
-            #[c, a, b, alpha] = fit_ellipse_linear(x_layer, y_layer)
-            #[c, a, b, alpha] = fit_ellipse_eps_insensitive(x_layer, y_layer)
-            ellipse_stack[z] = Ellipse(c[0], c[1], z, a, b, alpha)
-        except Exception, detail:
-            print detail
-
-        #from pprint import pprint
-        #pprint( fitellipse(dat_layer, 'linear', constraint = 'bookstein') )
-        #pprint( fitellipse(dat_layer, 'linear', constraint = 'trace') )
-        #pprint( fitellipse(dat_layer, 'nonlinear') )
-
-        #pprint( fitellipse(dat_layer, 'linear', constraint = 'bookstein') )
-
-
-    return ellipse_stack
 
 
 
@@ -272,7 +221,7 @@ def check_gradient():
     i = []
 
     for idx in range(num_z):
-        dat = util.ellipse(1, 1, 1, 2, 0, n=n)
+        dat = util.Ellipse(1, 1, 1, 2, 0).sample_uniform(n)
     
         x += list(dat[0])
         y += list(dat[1])
@@ -305,9 +254,6 @@ def fit_ellipse_stack_scipy(dx, dy, dz, di, loss_type = "algebraic_abs"):
     fit ellipoid based on scipy optimize
     """
 
-    #TODO think about what to do if there is not data on every layer
-    #solution: regularize radii to zero, center to previous
-
     #global x,y,z,i
     x = numpy.array(dx)
     y = numpy.array(dy)
@@ -332,7 +278,7 @@ def fit_ellipse_stack_scipy(dx, dy, dz, di, loss_type = "algebraic_abs"):
     epsilon = 0.1
 
     # contrain all variables to be positive
-    bounds = [(0,None) for idx in range(num_parameters)]
+    bounds = [(0, None) for _ in range(num_parameters)]
     bounds[2] = (None, None) # no positivity for w0
     bounds[3] = (None, None) # no positivity for w1
 
@@ -346,7 +292,7 @@ def fit_ellipse_stack_scipy(dx, dy, dz, di, loss_type = "algebraic_abs"):
     #x_opt = scipy.optimize.fmin(fitting_obj_stack, x0, xtol=epsilon, ftol=epsilon, disp=True, full_output=True)[0]
     #x_opt, nfeval, rc = scipy.optimize.fmin_tnc(fitting_obj_stack, x0, bounds=bounds, approx_grad=True, messages=5, args=(x,y,z,i), epsilon=epsilon)
     #x_opt, nfeval, rc = scipy.optimize.fmin_tnc(fitting_obj_stack_gradient, x0, bounds=bounds, messages=5, args=(x,y,z,i), epsilon=epsilon)
-    x_opt, nfeval, rc = scipy.optimize.fmin_tnc(fitting_obj_stack_gradient, x0, bounds=bounds, messages=5, args=(x,y,z,i,loss), epsilon=epsilon)
+    x_opt, _, _ = scipy.optimize.fmin_tnc(fitting_obj_stack_gradient, x0, bounds=bounds, messages=5, args=(x, y, z, i, loss), epsilon=epsilon)
 
     #x_opt, nfeval, rc = scipy.optimize.fmin_l_bfgs_b(fitting_obj, x0, bounds=bounds, approx_grad=True, iprint=5)
     #x_opt = scipy.optimize.fmin(fitting_obj_sample, x0, xtol=epsilon, ftol=epsilon, disp=True, full_output=True)[0]
@@ -372,381 +318,6 @@ def fit_ellipse_stack_scipy(dx, dy, dz, di, loss_type = "algebraic_abs"):
 
     return ellipse_stack
 
-
-
-
-def fit_ellipse_eps_insensitive(x, y):
-    """
-    fit ellipoid using epsilon-insensitive loss
-    """
-    import cvxmod
-
-    x = numpy.array(x)
-    y = numpy.array(y)
-
-    print "shapes", x.shape, y.shape
-
-    assert len(x) == len(y)
-
-    N = len(x)
-    D = 5
-    
-    dat = numpy.zeros((N, D))
-    dat[:,0] = x*x
-    dat[:,1] = y*y
-    #dat[:,2] = y*x
-    dat[:,2] = x
-    dat[:,3] = y
-    dat[:,4] = numpy.ones(N)
-    
-
-    print dat.shape   
-    dat = cvxmod.matrix(dat)
-    #### parameters
-
-    # data
-    X = cvxmod.param("X", N, D)
-
-    # parameter for eps-insensitive loss
-    eps = cvxmod.param("eps", 1)
- 
-
-    #### varibales
-    
-    # parameter vector
-    theta = cvxmod.optvar("theta", D)
-    
-    # dim = (N x 1)
-    s = cvxmod.optvar("s", N)
-
-    t = cvxmod.optvar("t", N)
-    
-    # simple objective 
-    objective = cvxmod.sum(t)
-    
-    # create problem                                    
-    p = cvxmod.problem(cvxmod.minimize(objective))
-    
-    # add constraints 
-    # (N x D) * (D X 1) = (N X 1)
-    p.constr.append(X*theta <= s)
-    p.constr.append(-X*theta <= s)
-    
-    p.constr.append(s - eps <= t)
-    p.constr.append(0 <= t)
-    
-    #p.constr.append(theta[4] == 1)
-    # trace constraint
-    p.constr.append(theta[0] + theta[1] == 1)
-    
-    ###### set values
-    X.value = dat
-    eps.value = 0.0
-    #solver = "mosek" 
-    #p.solve(lpsolver=solver)
-    p.solve()
-    
-    cvxmod.printval(theta)
-
-    w = numpy.array(cvxmod.value(theta))
-    
-    #cvxmod.printval(s)
-    #cvxmod.printval(t)
-
-    ## For clarity, fill in the quadratic form variables
-    A        = numpy.zeros((2,2))
-    A[0,0]   = w[0]
-    A.ravel()[1:3] = 0#w[2]
-    A[1,1]   = w[1]
-    bv       = w[2:4]
-    c        = w[4]
-    
-    ## find parameters
-    import fit_ellipse
-    z, a, b, alpha = fit_ellipse.conic2parametric(A, bv, c)
-    print "XXX", z, a, b, alpha
-
-    return z, a, b, alpha
-
-
-def fit_ellipse_linear(x, y):
-    """
-    fit ellipse stack using absolute loss
-    """
-
-    x = numpy.array(x)
-    y = numpy.array(y)
-
-    print "shapes", x.shape, y.shape
-
-    assert len(x) == len(y)
-
-    N = len(x)
-    D = 6
-    
-    dat = numpy.zeros((N, D))
-    dat[:,0] = x*x
-    dat[:,1] = y*y
-    dat[:,2] = y*x
-    dat[:,3] = x
-    dat[:,4] = y
-    dat[:,5] = numpy.ones(N)
-    
-
-    print dat.shape   
-    dat = cvxmod.matrix(dat)
-    
-
-    # norm
-    norm = numpy.zeros((N,N))
-    for i in range(N):
-        norm[i,i] = numpy.sqrt(numpy.dot(dat[i], numpy.transpose(dat[i])))
-    norm = cvxmod.matrix(norm)
-
-    #### parameters
-
-    # data
-    X = cvxmod.param("X", N, D)
-    Q_grad = cvxmod.param("Q_grad", N, N)
- 
-
-    #### varibales
-    
-    # parameter vector
-    theta = cvxmod.optvar("theta", D)
-    
-    # dim = (N x 1)
-    s = cvxmod.optvar("s", N)
-    
-    # simple objective 
-    objective = cvxmod.sum(s)
-    
-    # create problem                                    
-    p = cvxmod.problem(cvxmod.minimize(objective))
-    
-    # add constraints 
-    # (N x D) * (D X 1) = (N x N) * (N X 1)
-    p.constr.append(X*theta <= Q_grad*s)
-    p.constr.append(-X*theta <= Q_grad*s)
-    
-    #p.constr.append(theta[4] == 1)
-    # trace constraint
-    p.constr.append(theta[0] + theta[1] == 1)
-    
-    ###### set values
-    X.value = dat
-    Q_grad.value = norm
-    #solver = "mosek" 
-    #p.solve(lpsolver=solver)
-    p.solve()
-    
-    cvxmod.printval(theta)
-
-    w = numpy.array(cvxmod.value(theta))
-    
-    #cvxmod.printval(s)
-    #cvxmod.printval(t)
-
-    ## For clarity, fill in the quadratic form variables
-    A        = numpy.zeros((2,2))
-    A[0,0]   = w[0]
-    A.ravel()[1:3] = w[2]
-    A[1,1]   = w[1]
-    bv       = w[3:5]
-    c        = w[5]
-    
-    ## find parameters
-    import fit_ellipse
-    z, a, b, alpha = fit_ellipse.conic2parametric(A, bv, c)
-    print "XXX", z, a, b, alpha
-
-    return z, a, b, alpha
-
-
-
-def fit_ellipse_squared(x, y):
-    """
-    fit ellipoid using squared loss
-    """
-
-    assert len(x) == len(y)
-
-    N = len(x)
-    D = 5
-    
-    dat = numpy.zeros((N, D))
-    dat[:,0] = x*x
-    dat[:,1] = y*y
-    #dat[:,2] = x*y
-    dat[:,2] = x
-    dat[:,3] = y
-    dat[:,4] = numpy.ones(N)
-    
-
-    print dat.shape   
-    dat = cvxmod.matrix(dat)
-    #### parameters
-
-    # data
-    X = cvxmod.param("X", N, D)
-
-
-    #### varibales
-    
-    # parameter vector
-    theta = cvxmod.optvar("theta", D)
-    
-
-    # simple objective 
-    objective = cvxmod.sum(square(X*theta))
-    
-    # create problem                                    
-    p = cvxmod.problem(cvxmod.minimize(objective))
-    p.constr.append(theta[0] + theta[1] == 1)
-    
-    
-    ###### set values
-    X.value = dat
-    #solver = "mosek" 
-    #p.solve(lpsolver=solver)
-    p.solve()
-    
-
-    w = numpy.array(cvxmod.value(theta))
-    
-    #print weights
-    
-    cvxmod.printval(theta)
-
-
-    ## For clarity, fill in the quadratic form variables
-    A              = numpy.zeros((2,2))
-    A[0,0]         = w[0]
-    A.ravel()[1:3] = 0 #w[2]
-    A[1,1]         = w[1]
-    bv             = w[2:4]
-    c              = w[4]
-    
-    ## find parameters
-    import fit_ellipse
-    z, a, b, alpha = fit_ellipse.conic2parametric(A, bv, c)
-    print "XXX", z, a, b, alpha
-
-    return z, a, b, alpha
-
-
-def fit_ellipse_stack_squared(dx, dy, dz, di):
-    """
-    fit ellipoid using squared loss
-
-    idea to learn all stacks together including smoothness
-    """
-
-    # sanity check
-    assert len(dx) == len(dy)
-    assert len(dx) == len(dz)
-    assert len(dx) == len(di)
-
-    # unique zs
-    dat = defaultdict(list)
-
-    # resort data
-    for idx in range(len(dx)):
-        dat[dz[idx]].append( [dx[idx], dy[idx]] )
-
-    # init ret
-    ellipse_stack = []
-    for idx in range(max(dz)):
-        ellipse_stack.append(Ellipse(0, 0, idx, 1, 1, 0))
-    
-
-    #TODO restrict to two
-    M = len(dat.keys())
-    D = 6
-
-    X_matrix = []
-    thetas = []
-
-    for z in dat.keys():
-
-        print "muh", dat[z]
-        x = numpy.array(dat[z])[:,0]
-        y = numpy.array(dat[z])[:,1]
-        N = len(x)
-        d = numpy.zeros((N, D))
-        d[:,0] = x*x
-        d[:,1] = y*y
-        d[:,2] = x*y
-        d[:,3] = x
-        d[:,4] = y
-        d[:,5] = numpy.ones(N)
-    
-
-        print d.shape   
-        d = cvxmod.matrix(d)
-        #### parameters
-
-        # da
-        X = cvxmod.param("X" + str(z), N, D)
-        X.value = d
-        X_matrix.append(X)
-
-
-        #### varibales
-    
-        # parameter vector
-        theta = cvxmod.optvar("theta" + str(z), D)
-        thetas.append(theta)
-
-
-    # contruct objective
-    objective = 0
-    for (i,X) in enumerate(X_matrix):
-        objective += cvxmod.sum(square(X*thetas[i]))
-
-    # add smoothness regularization
-    for i in xrange(M-1):
-        objective += cvxmod.sum(square(thetas[i] - thetas[i+1]))
-
-    print objective
-
-    # create problem                                    
-    p = cvxmod.problem(cvxmod.minimize(objective))
-
-    # add constraints
-    for i in xrange(M-1):
-        p.constr.append(thetas[i][0] + thetas[i][1] == 1)
-    
-    
-    ###### set values
-    p.solve()
-    
-
-    print p
-    
-    return None
-
-    w = numpy.array(cvxmod.value(theta))
-    
-    #print weights
-    
-    cvxmod.printval(theta)
-
-
-    ## For clarity, fill in the quadratic form variables
-    A        = numpy.zeros((2,2))
-    A[0,0]   = w[0]
-    A.ravel()[1:3] = w[2]
-    A[1,1]   = w[1]
-    bv       = w[3:5]
-    c        = w[5]
-    
-    ## find parameters
-    import fit_ellipse
-    z, a, b, alpha = fit_ellipse.conic2parametric(A, bv, c)
-    print "XXX", z, a, b, alpha
-
-    return z, a, b, alpha
 
         
 if __name__ == "__main__":

@@ -1,12 +1,12 @@
 #!/usr/bin/env python2.5
 #
 # Written (W) 2011 Christian Widmer
-# Copyright (C) 2011 Max-Planck-Society
+# Copyright (C) 2011-2013 Max-Planck-Society, TU-Berlin, MSKCC
 
 """
 @author: Christian Widmer
 
-@summary: module to convert conic parameterizations to 
+@summary: module to convert conic parameterizations to standard ellipse parameterization
 
 """
 

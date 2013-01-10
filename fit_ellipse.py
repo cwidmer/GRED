@@ -20,7 +20,7 @@ from numpy import *
 from collections import defaultdict
 import numpy
 
-from util import Ellipse
+from util import Ellipse, conic2parametric
 
 
 def fit_ellipse_stack(dx, dy, dz, di):
@@ -379,29 +379,6 @@ def fitnonlinear(x, z0, a0, b0, alpha0, **params):
     
     return z, a, b, alpha, fConverged
 
-def conic2parametric(A, bv, c):
-    '''
-    function [z, a, b, alpha] = conic2parametric(A, bv, c)
-    '''
-    ## Diagonalise A - find Q, D such at A = Q' * D * Q
-    D, Q = linalg.eig(A)
-    Q = Q.T
-    
-    ## If the determinant < 0, it's not an ellipse
-    if prod(D) <= 0:
-        raise RuntimeError, 'fitellipse:NotEllipse Linear fit did not produce an ellipse'
-    
-    ## We have b_h' = 2 * t' * A + b'
-    t = -0.5 * linalg.solve(A, bv)
-    
-    c_h = dot( dot( t.T, A ), t ) + dot( bv.T, t ) + c
-    
-    z = t
-    a = sqrt(-c_h / D[0])
-    b = sqrt(-c_h / D[1])
-    alpha = atan2(Q[0,1], Q[0,0])
-    
-    return z, a, b, alpha
 
 
 '''
