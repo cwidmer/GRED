@@ -14,11 +14,6 @@ import numpy
 import pylab
 import math
 
-# def named tuple
-#from collections import namedtuple
-#Ellipse = namedtuple("Ellipse", ["cx", "cy", "cz", "rx", "ry", "alpha"])
-
-
 
 class Ellipse(object):
     """
@@ -39,15 +34,31 @@ class Ellipse(object):
         self.alpha = alpha
 
 
-    def plot(self, num_points=100):
+    def __str__(self):
+        """
+        string representation
+        """
+
+        return "cx=%.2g, cy=%.2g, cz=%.2g, rx=%.2g, ry=%.2g, alpha=%.2g" % (self.cx, self.cy, self.cz, self.rx, self.ry, self.alpha)
+
+
+    def plot(self, num_points=100, style="bo"):
+        """
+        plot ellipse by sampling points
+        """
+
+        self.plot_noshow(num_points, style)
+        pylab.show()
+        
+
+    def plot_noshow(self, num_points=100, style="bo"):
         """
         plot ellipse by sampling points
         """
 
         dat_x, dat_y = self.sample_equidistant(num_points)
         
-        pylab.plot(dat_x, dat_y, "bo")
-        pylab.show()
+        pylab.plot(dat_x, dat_y, style)
 
 
     def sample_equidistant(self, num_points):
@@ -230,3 +241,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
