@@ -4,8 +4,8 @@
 # the Free Software Foundation; either version 3 of the License, or
 # (at your option) any later version.
 #
-# Written (W) 2011 Christian Widmer
-# Copyright (C) 2011 Max-Planck-Society
+# Written (W) 2011-2013 Christian Widmer
+# Copyright (C) 2011-2013 Max-Planck-Society, TU-Berlin, MSKCC
 
 """
 @author: Christian Widmer
@@ -13,24 +13,26 @@
 
 """
 
-
+import random
 import numpy
 import pylab
-from collections import namedtuple
 
 
 # def named tuple
-Ellipse = namedtuple("Ellipse", ["cx", "cy", "cz", "rx", "ry", "alpha"])
+#from collections import namedtuple
+#Ellipse = namedtuple("Ellipse", ["cx", "cy", "cz", "rx", "ry", "alpha"])
 
 
-class EllipseXX(object):
+
+class Ellipse(object):
     """
-    simple container for ellipse data
+    ellipse class defining some plotting and sampling procedures
     """
 
     def __init__(self, cx, cy, cz, rx, ry, alpha):
         """
-        constructor
+        constructor defining fields consisting of 
+        center coordinates, radii and rotation angle
         """
 
         self.cx = cx
@@ -41,42 +43,72 @@ class EllipseXX(object):
         self.alpha = alpha
 
 
+    def plot(self, num_points=100):
+        """
+        plot ellipse by sampling points
+        """
 
-def ellipse(xc, yc, xr, yr, alpha, n=200):
-    """
-    sample points from ellipse
+        dat_x, dat_y = self.sample_equidistant(num_points)
+        
+        pylab.plot(dat_x, dat_y, "bo")
+        pylab.show()
 
-    center: xc, yc
-    radii: xr, yr
-    rotation: alpha
-    %       X = Z + Q(ALPHA) * [A * cos(theta); B * sin(theta)]
-    %       where Q(ALPHA) is the rotation matrix
-    %       Q(ALPHA) = [cos(ALPHA), -sin(ALPHA); 
-    %                   sin(ALPHA), cos(ALPHA)]
-    """
 
-    pi = numpy.pi
-    theta = numpy.linspace (0, 2 * pi, n + 1);
+    def sample_equidistant(self, num_points):
+        """
+        sample from ellipsoid with equal angular spacing
+        """
 
-    points = numpy.zeros((2, n+1))
-    points[0,:] = xr * numpy.cos(theta);
-    points[1,:] = yr * numpy.sin(theta);
-
-    ## Get initial rotation matrix
-    rm = numpy.array( [[ numpy.cos(alpha), -numpy.sin(alpha) ], [ numpy.sin(alpha), numpy.cos(alpha) ]] )
+        theta = numpy.linspace(0, 2 * numpy.pi, num_points + 1)
     
-    ## center
-    center = numpy.zeros((2, 1))
-    center[0] = xc
-    center[1] = yc
-
-    # perform rotation
-    dat = numpy.dot(rm , points) + center
-
-    return dat
+        return self.sample_given_spacing(theta)
 
 
-def ellipsoid(xc, yc, zc, xr, yr, zr, n=200, plot=False):
+    def sample_uniform(self, num_points):
+        """
+        sample from ellipsoid with uniformly distributed spacing
+        """
+
+        theta = [random.uniform(0, 2 * numpy.pi) for _ in xrange(num_points + 1)]
+    
+        return self.sample_given_spacing(theta)
+
+
+    def sample_given_spacing(self, theta):
+        """
+        sample points from ellipse given set of angles
+
+        center: xc, yc
+        radii: xr, yr
+        rotation: alpha
+
+        X = Z + Q(ALPHA) * [A * cos(theta); B * sin(theta)]
+        where Q(ALPHA) is the rotation matrix
+        Q(ALPHA) = [cos(ALPHA), -sin(ALPHA); 
+                    sin(ALPHA), cos(ALPHA)]
+        """
+
+        # set up points
+        points = numpy.zeros((2, len(theta)))
+        points[0, :] = self.rx * numpy.cos(theta)
+        points[1, :] = self.ry * numpy.sin(theta)
+
+        ## get initial rotation matrix
+        rot = numpy.array( [[ numpy.cos(self.alpha), -numpy.sin(self.alpha) ], 
+                            [ numpy.sin(self.alpha),  numpy.cos(self.alpha) ]])
+        
+        ## center
+        center = numpy.zeros((2, 1))
+        center[0] = self.cx
+        center[1] = self.cy
+
+        # perform rotation
+        dat = numpy.dot(rot , points) + center
+
+        return dat
+
+
+def ellipsoid(xc, yc, zc, xr, yr, zr, n=200):
     """
     sample points from ellipsoid
 
@@ -150,9 +182,6 @@ def plot_ellipse_stack(ellipse_stack, figure):
 
 if __name__ == "__main__":
     
-    e = ellipse(3,6,2,3,0)
-
-    print numpy.average(e[0])
-    print numpy.average(e[1])
-
+    e = Ellipse(1,1,0,2,3,0)
+    e.plot()
 

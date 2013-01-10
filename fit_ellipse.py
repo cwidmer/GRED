@@ -17,9 +17,10 @@ and geometric distance (nonlinear least squares).'
 from math import *
 from numpy import *
 
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 import numpy
 
+from util import Ellipse
 
 
 def fit_ellipse_stack(dx, dy, dz, di):
@@ -27,14 +28,8 @@ def fit_ellipse_stack(dx, dy, dz, di):
     fit ellipoid beased on data
     """
 
-
-    # def named tuple
-    Ellipse = namedtuple("Ellipse", ["cx", "cy", "cz", "rx", "ry", "alpha"])
-
     # sanity check
-    assert len(dx) == len(dy)
-    assert len(dx) == len(dz)
-    assert len(dx) == len(di)
+    assert len(dx) == len(dy) == len(dz) == len(di)
 
     # unique zs
     dat = defaultdict(list)

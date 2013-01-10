@@ -12,10 +12,12 @@
 #solvers.options['feastol'] = 1e-1
 
 from collections import defaultdict
-from util import Ellipse
 
 import numpy
 import cvxmod
+
+from util import Ellipse
+import fit_ellipse
 
 
 def fit_ellipse_stack(dx, dy, dz, di):
@@ -279,7 +281,6 @@ def fit_ellipse_eps_insensitive(x, y):
     c        = w[4]
     
     ## find parameters
-    import fit_ellipse
     z, a, b, alpha = fit_ellipse.conic2parametric(A, bv, c)
     print "XXX", z, a, b, alpha
 
@@ -373,7 +374,6 @@ def fit_ellipse_linear(x, y):
     c        = w[5]
     
     ## find parameters
-    import fit_ellipse
     z, a, b, alpha = fit_ellipse.conic2parametric(A, bv, c)
     print "XXX", z, a, b, alpha
 
@@ -449,7 +449,6 @@ def fit_ellipse_squared(x, y):
     c              = w[4]
 
     ## find parameters
-    import fit_ellipse
     z, a, b, alpha = fit_ellipse.conic2parametric(A, bv, c)
     print "XXX", z, a, b, alpha
 
@@ -607,7 +606,6 @@ def fit_ellipse_stack_squared(dx, dy, dz, di):
         c              = w[4]
                 
         ## find parameters
-        import fit_ellipse
         z, a, b, alpha = fit_ellipse.conic2parametric(A, bv, c)
         print "layer (i,z,a,b,alpha):", i, z, a, b, alpha
 
@@ -784,11 +782,7 @@ def fit_ellipse_stack_abs(dx, dy, dz, di):
         bv             = w[2:4]
         c              = w[4]
         
-        if i==0:
-            print "AAAAAAAAAAAAAA"
-            print A,bv,c
         ## find parameters
-        import fit_ellipse
         z, a, b, alpha = fit_ellipse.conic2parametric(A, bv, c)
         print "layer (i,z,a,b,alpha):", i, z, a, b, alpha
 
@@ -797,7 +791,6 @@ def fit_ellipse_stack_abs(dx, dy, dz, di):
 
 
     return ellipse_stack
-
 
 
 
@@ -820,6 +813,4 @@ if __name__ == "__main__":
     #fit1 = fit_ellipse_stack(dx, dy, dz, di)
     #fit1 = fit_ellipse_stack_abs(dx, dy, dz, di)
     fit1 = fit_ellipse_stack_squared(dx, dy, dz, di)
-
-    
 

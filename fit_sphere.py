@@ -20,6 +20,7 @@ import numpy
 import util
 import sympy
 
+from util import Ellipse
 
 loss = None
 
@@ -172,8 +173,6 @@ def fit_sphere_stack(dx, dy, dz, di):
     #x_opt = scipy.optimize.fmin(fitting_obj_sample, x0, xtol=epsilon, ftol=epsilon, disp=True, full_output=True)[0]
     
     ellipse_stack = []
-    # def named tuple
-    Ellipse = namedtuple("Ellipse", ["cx", "cy", "cz", "rx", "ry", "alpha"])
     cx, cy = x_opt[0], x_opt[1]
 
     for z, radius in enumerate(x_opt[2:]):

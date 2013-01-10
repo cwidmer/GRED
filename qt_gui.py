@@ -23,8 +23,6 @@ os.environ['ETS_TOOLKIT'] = 'qt4'
 #import sip
 #sip.setapi('QString', 1)
 from PyQt4 import QtGui, QtCore
-import numpy
-import util
 import scipy.stats
 from collections import namedtuple
 
@@ -89,7 +87,7 @@ class Visualization(HasTraits):
         # sample data
         for e in self.ellipse_stack.values():
              
-            dat = util.ellipse(e.cx, e.cy, e.rx, e.ry, e.alpha, n)
+            dat = e.sample_equidistant(n)
             
             dx = dat[0]
             dy = dat[1]
@@ -137,7 +135,7 @@ class Visualization(HasTraits):
         #from mayavi import mlab
         #self.data_plot = mlab.pipeline.volume(mlab.pipeline.scalar_field(self.volume))
 
-        self.data_plot = self.scene.mlab.points3d(self.data[0], self.data[1], self.data[2], self.data[3],colormap="Reds", scale_factor=.001, opacity=0.2, scale_mode="scalar")
+        self.data_plot = self.scene.mlab.points3d(self.data[0], self.data[1], self.data[2], self.data[3], colormap="Reds", scale_factor=.001, opacity=0.2, scale_mode="scalar")
 
         #self.data_plot.mlab_source.set(scalars=self.data, opacity=0.1)
         print "updating data done."

@@ -4,8 +4,8 @@
 # the Free Software Foundation; either version 3 of the License, or
 # (at your option) any later version.
 #
-# Written (W) 2011 Christian Widmer
-# Copyright (C) 2011 Max-Planck-Society
+# Written (W) 2011-2013 Christian Widmer
+# Copyright (C) 2011-2013 Max-Planck-Society, TU-Berlin, MSKCC
 
 """
 @author: Christian Widmer
@@ -13,6 +13,7 @@
 
 """
 
+import copy
 import pylab
 from PyQt4 import QtGui, QtCore
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
@@ -112,8 +113,7 @@ class SimpleSlicerQWidget(QtGui.QWidget):
             if self.dataset.stack.has_key(z):
 
                 e = self.dataset.stack[z]
-                dat = util.ellipse(e.cx, e.cy, e.rx, e.ry, e.alpha, n)
-                #dat = util.ellipse(e.cx+0.5, e.cy+0.5, e.rx, e.ry, e.alpha, n)
+                dat = e.sample_equidistant(n)
 
                 self.axes.plot(dat[0], dat[1], "b-", scalex=False, scaley=False)
                 self.axes_green.plot(dat[0], dat[1], "b-", scalex=False, scaley=False)
@@ -122,8 +122,11 @@ class SimpleSlicerQWidget(QtGui.QWidget):
 
                 # plot manual offset in red
                 if offset != 0:
-                    dat_off = util.ellipse(e.cx, e.cy, e.rx+offset, e.ry+offset, e.alpha, n)
-                    #dat_off = util.ellipse(e.cx+0.5, e.cy+0.5, e.rx+offset, e.ry+offset, e.alpha, n)
+                    e_off = copy.copy(e)
+                    e_off.rx += offset
+                    e_off.ry += offset
+
+                    dat_off = e_off.sample_equidistant(n)
                     self.axes.plot(dat_off[0], dat_off[1], "r-", scalex=False, scaley=False)
                     self.axes_green.plot(dat_off[0], dat_off[1], "r-", scalex=False, scaley=False)
 
