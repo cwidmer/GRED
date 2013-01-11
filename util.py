@@ -42,6 +42,14 @@ class Ellipse(object):
         return "cx=%.2g, cy=%.2g, cz=%.2g, rx=%.2g, ry=%.2g, alpha=%.2g" % (self.cx, self.cy, self.cz, self.rx, self.ry, self.alpha)
 
 
+    def to_vector(self):
+        """
+        return numpy vector
+        """
+
+        return [self.cx, self.cy, self.cz, self.rx, self.ry, self.alpha]
+
+
     def plot(self, num_points=100, style="bo"):
         """
         plot ellipse by sampling points
@@ -51,14 +59,14 @@ class Ellipse(object):
         pylab.show()
         
 
-    def plot_noshow(self, num_points=100, style="bo"):
+    def plot_noshow(self, num_points=100, style="bo", label=""):
         """
         plot ellipse by sampling points
         """
 
         dat_x, dat_y = self.sample_equidistant(num_points)
         
-        pylab.plot(dat_x, dat_y, style)
+        pylab.plot(dat_x, dat_y, style, label=label)
 
 
     def sample_equidistant(self, num_points):
@@ -139,7 +147,7 @@ def conic_to_ellipse(theta, use_rotation=False):
     ## find parameters
     z, a, b, alpha = conic2parametric(A, bv, c)
 
-    return Ellipse(z[0], z[1], 0, a, b, alpha)
+    return Ellipse(float(z[0]), float(z[1]), 0, float(a), float(b), float(alpha))
 
 
 def conic2parametric(A, bv, c):

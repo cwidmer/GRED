@@ -10,12 +10,9 @@
 
 """
 
-
 import numpy
 import cvxmod
-
 from util import conic_to_ellipse
-
 
 
 def fit_ellipse_eps_insensitive(x, y):
