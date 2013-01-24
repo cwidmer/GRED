@@ -47,7 +47,7 @@ class Ellipse(object):
         return numpy vector
         """
 
-        return [self.cx, self.cy, self.cz, self.rx, self.ry, self.alpha]
+        return numpy.array([self.cx, self.cy, self.cz, self.rx, self.ry, self.alpha])
 
 
     def plot(self, num_points=100, style="bo"):

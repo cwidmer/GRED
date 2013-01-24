@@ -74,24 +74,25 @@ while iterations < k {
 return bestfit
 }}}
 """
+
     iterations = 0
     bestfit = None
     besterr = numpy.inf
     best_inlier_idxs = None
     while iterations < k:
-        maybe_idxs, test_idxs = random_partition(n,data.shape[0])
-        maybeinliers = data[maybe_idxs,:]
+        maybe_idxs, test_idxs = random_partition(n, data.shape[0])
+        maybeinliers = data[maybe_idxs, :]
         test_points = data[test_idxs]
         maybemodel = model.fit(maybeinliers)
         test_err = model.get_error( test_points, maybemodel)
         also_idxs = test_idxs[test_err < t] # select indices of rows with accepted points
-        alsoinliers = data[also_idxs,:]
+        alsoinliers = data[also_idxs, :]
         if debug:
-            print 'test_err.min()',test_err.min()
-            print 'test_err.max()',test_err.max()
-            print 'numpy.mean(test_err)',numpy.mean(test_err)
-            print 'iteration %d:len(alsoinliers) = %d'%(
-                iterations,len(alsoinliers))
+            print 'test_err.min()', test_err.min()
+            print 'test_err.max()', test_err.max()
+            print 'numpy.mean(test_err)', numpy.mean(test_err)
+            print 'iteration %d:len(alsoinliers) = %d' % (iterations, len(alsoinliers))
+
         if len(alsoinliers) > d:
             betterdata = numpy.concatenate( (maybeinliers, alsoinliers) )
             bettermodel = model.fit(betterdata)
@@ -101,7 +102,7 @@ return bestfit
                 bestfit = bettermodel
                 besterr = thiserr
                 best_inlier_idxs = numpy.concatenate( (maybe_idxs, also_idxs) )
-        iterations+=1
+        iterations += 1
     if bestfit is None:
         raise ValueError("did not meet fit acceptance criteria")
     if return_all:
@@ -109,7 +110,7 @@ return bestfit
     else:
         return bestfit
 
-def random_partition(n,n_data):
+def random_partition(n, n_data):
     """return n random rows of data (and also the other len(data)-n rows)"""
     all_idxs = numpy.arange( n_data )
     numpy.random.shuffle(all_idxs)
@@ -144,7 +145,7 @@ def test():
     # generate perfect input data
 
     n_samples = 500
-    n_inputs = 1
+    n_inputs = 5
     n_outputs = 1
     A_exact = 20*numpy.random.random((n_samples,n_inputs) )
     perfect_fit = 60*numpy.random.normal(size=(n_inputs,n_outputs) ) # the model
@@ -170,7 +171,7 @@ def test():
     all_data = numpy.hstack( (A_noisy,B_noisy) )
     input_columns = range(n_inputs) # the first columns of the array
     output_columns = [n_inputs+i for i in range(n_outputs)] # the last columns of the array
-    debug = False
+    debug = True
     model = LinearLeastSquaresModel(input_columns,output_columns,debug=debug)
 
     linear_fit,resids,rank,s = scipy.linalg.lstsq(all_data[:,input_columns],
