@@ -168,13 +168,15 @@ def extract():
         detect_boxes(data, data_green, dilated)
 
 
-        return ""
+        import ipdb
+        ipdb.set_trace()
 
         pylab.figure()
-        plot_image(data, title="seg vs real", alpha=0.5)
-        plot_image(dilated, title="seg vs real", alpha=0.5)
+        plot_image(data[:,:,8], title="seg vs real", alpha=0.5)
+        plot_image(dilated[:,:,8], title="seg vs real", alpha=0.5)
         pylab.show()
 
+        return ""
 
 
     #igra.filters.discClosing()
