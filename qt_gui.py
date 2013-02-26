@@ -141,6 +141,41 @@ class Visualization(HasTraits):
         print "updating data done."
         
 
+
+    #TODO fix
+    #@on_trait_change('ellipsoid')
+    def plot_ellipsoid(self, cx, cy, cz, rx, ry, rz):
+        """
+        plot ellispoid given three center coordinates (cx, cy, cz) 
+        and three radii (rx, ry, rz)
+        """
+
+        n = 15
+
+        # debug
+        #######################################
+        x = [cx]
+        y = [cy]
+        z = [cz]
+        v = [100]
+        print "x,y,z=%f,%f,%f" % (cx, cy, cz) 
+        self.scene.mlab.points3d(x,y,z,v,colormap="copper", scale_factor=.025, opacity=0.4)
+        #######################################
+
+        pi = numpy.pi
+        theta = numpy.linspace (0, 2 * pi, n + 1);
+        phi = numpy.linspace (-pi / 2, pi / 2, n + 1);
+        [theta, phi] = numpy.meshgrid (theta, phi);
+
+        lx = rx * numpy.cos(phi) * numpy.cos(theta) + cx;
+        ly = ry * numpy.cos(phi) * numpy.sin(theta) + cy;
+        lz = rz * numpy.sin(phi) + cz;
+        lv = numpy.ones(lz.shape)
+        #self.scene.mlab.plot3d(lx.flatten(), ly.flatten(), lz.flatten(), lv.flatten(), opacity=0.3)
+        #self.scene.mlab.contour3d(lx, ly, lz, lv, opacity=0.3)
+        self.scene.mlab.mesh(lx, ly, lz, scalars=lv, opacity=0.2, representation="wireframe", line_width=1.0)
+
+
     # the layout of the dialog screated
     view = View(Item('scene', editor=SceneEditor(scene_class=MayaviScene),
                      height=450, width=500, show_label=False),
@@ -302,6 +337,10 @@ class ControlWidget(QtGui.QWidget):
         self.button_save = QtGui.QPushButton('Save', self)
         self.button_save.setFocusPolicy(QtCore.Qt.NoFocus)
         self.layout.addWidget(self.button_save)
+
+        #self.button_fit = QtGui.QPushButton('Fit ellipsoid', self)
+        #self.button_fit.setFocusPolicy(QtCore.Qt.NoFocus)
+        #self.layout.addWidget(self.button_fit)
 
         self.button_fit_stack = QtGui.QPushButton('Fit ellipse stack (squared)', self)
         self.button_fit_stack.setFocusPolicy(QtCore.Qt.NoFocus)
@@ -518,6 +557,7 @@ class MainWidget(QtGui.QTreeWidget):
         self.connect(self, QtCore.SIGNAL('activeDatasetEvaluated(PyQt_PyObject)'), table_widget.update_evaluation)
 
         # create deep links to control widget (simple)
+        #self.connect(control_widget.button_fit, QtCore.SIGNAL('clicked()'), mayavi_widget.update_ellipsoid)
         self.connect(control_widget.button_fit_sphere_stack, QtCore.SIGNAL('clicked()'), self.update_stack)
         self.connect(control_widget.button_fit_stack, QtCore.SIGNAL('clicked()'), self.update_ellipse_stack)
         self.connect(control_widget.button_fit_insensitive, QtCore.SIGNAL('clicked()'), self.update_ellipse_stack_eps)
@@ -892,6 +932,7 @@ class Dataset(object):
         self.volume = None
         self.is_loaded = False
         self.stack = {}
+        self.ellipsoid = None
         self.radius_offset = 0        
 
         self.evaluation = None
@@ -960,6 +1001,17 @@ class Dataset(object):
 
     ###################################
     # glue data to fitting code
+
+    def fit_ellipsoid(self):
+        """
+        invokes code to fit ellipsoid
+        """
+
+        if self.is_loaded:
+            self.ellipsoid = fit_ellipsoid(self.points.x, self.points.y, self.points.z, self.points.v, 500)
+
+        return self
+
 
     def fit_stack(self, method):
         """
