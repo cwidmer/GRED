@@ -4,8 +4,8 @@
 # the Free Software Foundation; either version 3 of the License, or
 # (at your option) any later version.
 #
-# Written (W) 2011-2013 Christian Widmer
-# Copyright (C) 2011-2013 Max-Planck-Society, TU-Berlin, MSKCC
+# Written (W) 2011-2014 Christian Widmer
+# Copyright (C) 2011-2014 Max-Planck-Society, MSKCC, TU-Berlin
 
 """
 @author: Christian Widmer
@@ -14,7 +14,7 @@
 """
 
 import copy
-from PyQt4 import QtGui, QtCore
+from PySide import QtGui, QtCore
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.cm as cm
@@ -37,7 +37,7 @@ class SimpleSlicerQWidget(QtGui.QWidget):
 
         QtGui.QWidget.__init__(self, parent)
         self.my_layout = QtGui.QVBoxLayout(self)
-        self.my_layout.setMargin(0)
+        #self.my_layout.setContentsMargin(0)
         self.my_layout.setSpacing(0)
 
 

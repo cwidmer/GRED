@@ -1,7 +1,7 @@
 #!/usr/bin/env python2.5
 #
-# Written (W) 2011-2012 Christian Widmer
-# Copyright (C) 2011-2012 Max-Planck-Society
+# Written (W) 2011-2014 Christian Widmer
+# Copyright (C) 2011-2014 Max-Planck-Society, MSKCC, TU-Berlin
 
 """
 @author: Christian Widmer
@@ -9,7 +9,7 @@
 
 """
 
-from PyQt4 import QtGui, QtCore
+from PySide import QtGui, QtCore
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
@@ -31,7 +31,7 @@ class HistogramQWidget(QtGui.QWidget):
 
         QtGui.QWidget.__init__(self, parent)
         self.my_layout = QtGui.QGridLayout(self)
-        self.my_layout.setMargin(0)
+        #self.my_layout.setMargin(0)
         self.my_layout.setSpacing(10)
 
 

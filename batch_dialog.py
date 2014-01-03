@@ -1,7 +1,8 @@
 #!/usr/bin/env python2.5
 #
-# Written (W) 2012 Christian Widmer
-# Copyright (C) 2012 Max-Planck-Society
+# Written (W) 2012-2014 Christian Widmer
+# Copyright (C) 2012-2014 Max-Planck-Society, MSKCC, TU-Berlin
+
 
 """
 @author: Christian Widmer
@@ -10,7 +11,7 @@
 
 """
 
-from PyQt4 import QtCore, QtGui, uic
+from PySide import QtCore, QtGui, QtUiTools
 
 
 class BatchDialog(QtGui.QDialog):
@@ -24,7 +25,12 @@ class BatchDialog(QtGui.QDialog):
         """
 
         QtGui.QDialog.__init__(self)
-        self.ui = uic.loadUi('batch_dialog.ui', self)
+
+        loader = QtUiTools.QUiLoader()
+        uifile = QtCore.QFile('batch_dialog.ui')
+        uifile.open(QtCore.QFile.ReadOnly)
+
+        self.ui = loader.load(uifile, self)
         self.ui.show()
 
 

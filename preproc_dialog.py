@@ -1,7 +1,7 @@
 #!/usr/bin/env python2.5
 #
 # Written (W) 2012 Christian Widmer
-# Copyright (C) 2012 Max-Planck-Society
+# Copyright (C) 2012-2014 Max-Planck-Society, MSKCC, TU-Berlin
 
 """
 @author: Christian Widmer
@@ -10,7 +10,7 @@
 
 """
 
-from PyQt4 import QtCore, QtGui, uic
+from PySide import QtCore, QtGui, QtUiTools
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
@@ -55,7 +55,12 @@ class PreprocDialog(QtGui.QDialog):
         """
 
         QtGui.QDialog.__init__(self)
-        self.ui = uic.loadUi('preproc.ui', self)
+
+        loader = QtUiTools.QUiLoader()
+        uifile = QtCore.QFile('preproc.ui')
+        uifile.open(QtCore.QFile.ReadOnly)
+
+        self.ui = loader.load(uifile, self)
         self.ui.show()
 
 

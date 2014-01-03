@@ -1,11 +1,11 @@
 #!/usr/bin/env python2.5
 #
-# Written (W) 2011-2012 Christian Widmer
-# Copyright (C) 2011-2012 Max-Planck-Society
+# Written (W) 2011-2014 Christian Widmer
+# Copyright (C) 2011-2014 Max-Planck-Society, MSKCC, TU-Berlin
 
 """
 @author: Christian Widmer
-@summary: Visualization of the fitted ellipses using PyQt4 and mayavi2
+@summary: Visualization of the fitted ellipses using PySide and mayavi2
 
 """
 
@@ -15,14 +15,14 @@ import os
 import cPickle
 os.environ['ETS_TOOLKIT'] = 'qt4'
 
-# To be able to use PySide or PyQt4 and not run in conflicts with traits,
+# To be able to use PySide or PySide and not run in conflicts with traits,
 # we need to import QtGui and QtCore from pyface.qt
 #from pyface.qt import QtGui, QtCore
 # Alternatively, you can bypass this line, but you need to make sure that
 # the following lines are executed before the import of PyQT:
 #import sip
 #sip.setapi('QString', 1)
-from PyQt4 import QtGui, QtCore
+from PySide import QtGui, QtCore
 import scipy.stats
 from collections import namedtuple
 
@@ -184,7 +184,7 @@ class Visualization(HasTraits):
 
 
 ################################################################################
-# The QWidget containing the visualization, this is pure PyQt4 code.
+# The QWidget containing the visualization, this is pure PySide code.
 class VolumeSlicerQWidget(QtGui.QWidget):
     """
     QT wrapper for mayavi2
@@ -197,7 +197,7 @@ class VolumeSlicerQWidget(QtGui.QWidget):
 
         QtGui.QWidget.__init__(self, parent)
         self.my_layout = QtGui.QVBoxLayout(self)
-        self.my_layout.setMargin(0)
+        #self.my_layout.setMargin(0)
         self.my_layout.setSpacing(0)
 
         x, y, z, i, volume = artificial_data()
@@ -262,7 +262,7 @@ class MayaviQWidget(QtGui.QWidget):
 
         QtGui.QWidget.__init__(self, parent)
         layout = QtGui.QVBoxLayout(self)
-        layout.setMargin(0)
+        #layout.setMargin(0)
         layout.setSpacing(0)
         self.visualization = Visualization()
 
@@ -298,7 +298,11 @@ class ControlWidget(QtGui.QWidget):
     """
     widget to hold control buttons
     """
-  
+
+    # new style signals
+    directoryChanged = QtCore.Signal(str)
+    superDirectoryChanged = QtCore.Signal(str)
+
     def __init__(self):
         super(ControlWidget, self).__init__()
 
@@ -314,7 +318,7 @@ class ControlWidget(QtGui.QWidget):
         # set up layout
         self.layout = QtGui.QVBoxLayout(self)
         self.layout.setAlignment(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignLeading)
-        self.layout.setMargin(0)
+        #self.layout.setMargin(0)
         self.layout.setSpacing(0)
 
         # add buttons
@@ -385,15 +389,16 @@ class ControlWidget(QtGui.QWidget):
         self.setWindowTitle('Select Files')
         #self.setGeometry(300, 300, 350, 80)
         
+
     
     def showDialog(self):
         self.directory = QtGui.QFileDialog.getExistingDirectory(self, "Select Directory")
-        self.emit(QtCore.SIGNAL('directoryChanged(PyQt_PyObject)'), self.directory)
+        self.directoryChanged.emit(str(self.directory))
 
 
     def select_super_dir(self):
         self.super_directory = QtGui.QFileDialog.getExistingDirectory(self, "Select Directory")
-        self.emit(QtCore.SIGNAL('superDirectoryChanged(PyQt_PyObject)'), self.super_directory)
+        self.superDirectoryChanged.emit(self.super_directory)
 
 
     def update_dataset(self, dataset):
@@ -411,6 +416,8 @@ class TableWidget(QtGui.QTableWidget):
     """
     widget class to hold table information (including the data directories)
     """
+
+    directoryChanged = QtCore.Signal(object)
 
     def __init__(self):
         super(TableWidget, self).__init__()
@@ -432,7 +439,7 @@ class TableWidget(QtGui.QTableWidget):
         self.setHorizontalHeaderLabels(["file name", "radius", "threshold", "num pixels", "area (micro m^2)", "total intensity", "intensity per area"]);
         self.horizontalHeader().setResizeMode(0, QtGui.QHeaderView.Stretch);
 
-        self.setSelectionBehavior(1) #select only rows
+        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows) #select only rows
         self.setShowGrid(1)
 
 
@@ -470,7 +477,7 @@ class TableWidget(QtGui.QTableWidget):
 
         print "item", item
 
-        self.emit(QtCore.SIGNAL('directoryChanged(PyQt_PyObject)'), self.datasets[item.row()])
+        self.directoryChanged.emit(self.datasets[item.row()])
 
 
     def update_evaluation(self, dataset):
@@ -478,6 +485,8 @@ class TableWidget(QtGui.QTableWidget):
         set new eval data
         """
 
+        print "table widget: update evaluation"
+    
         evaluation = dataset.evaluation
 
         if evaluation:
@@ -499,6 +508,10 @@ class MainWidget(QtGui.QTreeWidget):
     main widget
     """
 
+    # define signals
+    newKey = QtCore.Signal(str)
+    activeDatasetChanged = QtCore.Signal(object)
+    activeDatasetEvaluated = QtCore.Signal(object)
 
     def __init__(self):
         """
@@ -545,16 +558,19 @@ class MainWidget(QtGui.QTreeWidget):
         #control_widget.show()
 
 
-        self.connect(control_widget, QtCore.SIGNAL('directoryChanged(PyQt_PyObject)'), self.add_dataset)
+        control_widget.directoryChanged.connect(self.add_dataset)
 
-        self.connect(self, QtCore.SIGNAL('activeDatasetChanged(PyQt_PyObject)'), mayavi_widget.update_dataset)
-        self.connect(self, QtCore.SIGNAL('activeDatasetChanged(PyQt_PyObject)'), slicer_widget.update_dataset)
-        self.connect(self, QtCore.SIGNAL('activeDatasetChanged(PyQt_PyObject)'), hist_widget.update_dataset)
-        self.connect(self, QtCore.SIGNAL('activeDatasetChanged(PyQt_PyObject)'), control_widget.update_dataset)
-        self.connect(self, QtCore.SIGNAL('newKey(PyQt_PyObject)'), table_widget.add_dataset)
-        self.connect(table_widget, QtCore.SIGNAL('directoryChanged(PyQt_PyObject)'), self.change_active_dataset)
+        self.activeDatasetChanged.connect(mayavi_widget.update_dataset)
+        self.activeDatasetChanged.connect(slicer_widget.update_dataset)
+        self.activeDatasetChanged.connect(hist_widget.update_dataset)
+        self.activeDatasetChanged.connect(control_widget.update_dataset)
+
+        self.newKey.connect(table_widget.add_dataset)
+        table_widget.directoryChanged.connect(self.change_active_dataset)
+
+        #table_widget.direc
         self.connect(hist_widget, QtCore.SIGNAL('thresholdChanged(double)'), self.update_threshold)
-        self.connect(self, QtCore.SIGNAL('activeDatasetEvaluated(PyQt_PyObject)'), table_widget.update_evaluation)
+        self.activeDatasetEvaluated.connect(table_widget.update_evaluation)
 
         # create deep links to control widget (simple)
         #self.connect(control_widget.button_fit, QtCore.SIGNAL('clicked()'), mayavi_widget.update_ellipsoid)
@@ -568,8 +584,7 @@ class MainWidget(QtGui.QTreeWidget):
         self.connect(control_widget.button_preproc, QtCore.SIGNAL('clicked()'), self.preproc)
         self.connect(control_widget.button_save, QtCore.SIGNAL('clicked()'), self.save)
         self.connect(control_widget.spin_radius, QtCore.SIGNAL('valueChanged(double)'), self.update_radius_offset)
-        self.connect(control_widget, QtCore.SIGNAL('superDirectoryChanged(PyQt_PyObject)'), self.add_all_datasets)
-
+        control_widget.superDirectoryChanged.connect(self.add_all_datasets)
         
         #self.add_all_datasets(super_dir)
 
@@ -606,11 +621,13 @@ class MainWidget(QtGui.QTreeWidget):
         slot add_dataset
         """
         
+        print "adding dataset", tif_dir
+
         dataset = Dataset(tif_dir)
         dataset.load_data()
         self.datasets[tif_dir] = dataset
 
-        self.emit(QtCore.SIGNAL('newKey(PyQt_PyObject)'), tif_dir)
+        self.newKey.emit(tif_dir)
         
         # notify observers
         self.change_active_dataset(tif_dir)
@@ -622,7 +639,7 @@ class MainWidget(QtGui.QTreeWidget):
         """
 
         self.active_dataset = self.datasets[key]
-        self.emit(QtCore.SIGNAL('activeDatasetChanged(PyQt_PyObject)'), self.active_dataset)
+        self.activeDatasetChanged.emit(self.active_dataset)
 
     
     def update_stack(self):
@@ -633,7 +650,7 @@ class MainWidget(QtGui.QTreeWidget):
         print "updating stack"
 
         self.active_dataset.fit_stack("circle")
-        self.emit(QtCore.SIGNAL('activeDatasetChanged(PyQt_PyObject)'), self.active_dataset)
+        self.activeDatasetChanged.emit(self.active_dataset)
 
 
     def update_ellipse_stack(self):
@@ -644,7 +661,7 @@ class MainWidget(QtGui.QTreeWidget):
         print "updating stack"
 
         self.active_dataset.fit_stack("squared")
-        self.emit(QtCore.SIGNAL('activeDatasetChanged(PyQt_PyObject)'), self.active_dataset)
+        self.activeDatasetChanged.emit(self.active_dataset)
 
 
     def update_ellipse_stack_eps(self):
@@ -655,7 +672,7 @@ class MainWidget(QtGui.QTreeWidget):
         print "updating stack"
 
         self.active_dataset.fit_stack("eps")
-        self.emit(QtCore.SIGNAL('activeDatasetChanged(PyQt_PyObject)'), self.active_dataset)
+        self.activeDatasetChanged.emit(self.active_dataset)
 
 
     def update_threshold(self, thres):
@@ -665,7 +682,7 @@ class MainWidget(QtGui.QTreeWidget):
 
         print "updating threshold"
         self.active_dataset.update_threshold(thres)
-        self.emit(QtCore.SIGNAL('activeDatasetChanged(PyQt_PyObject)'), self.active_dataset)
+        self.activeDatasetChanged.emit(self.active_dataset)
 
 
     def update_radius_offset(self, offset):
@@ -675,7 +692,7 @@ class MainWidget(QtGui.QTreeWidget):
 
         print "updating threshold"
         self.active_dataset.update_radius_offset(offset)
-        self.emit(QtCore.SIGNAL('activeDatasetChanged(PyQt_PyObject)'), self.active_dataset)
+        self.activeDatasetChanged.emit(self.active_dataset)
 
 
     def evaluate(self):
@@ -684,7 +701,7 @@ class MainWidget(QtGui.QTreeWidget):
         """
         
         self.active_dataset.evaluate()
-        self.emit(QtCore.SIGNAL('activeDatasetEvaluated(PyQt_PyObject)'), self.active_dataset)
+        self.activeDatasetEvaluated.emit(self.active_dataset)
 
 
     def export(self):
@@ -745,7 +762,7 @@ class MainWidget(QtGui.QTreeWidget):
         
         dialog = QtGui.QFileDialog()
         dialog.setFileMode(QtGui.QFileDialog.AnyFile)
-        file_name = str(dialog.getSaveFileName(self, 'Save project', "cell_fit.proj"))
+        file_name = str(dialog.getSaveFileName(self, 'Save project', "cell_fit.proj")[0])
 
         if not file_name == "":
             try:
@@ -766,7 +783,7 @@ class MainWidget(QtGui.QTreeWidget):
         """
 
         dialog = QtGui.QFileDialog()
-        file_name = str(dialog.getOpenFileName(self, 'Load project'))
+        file_name = str(dialog.getOpenFileName(self, 'Load project')[0])
 
         if not file_name == "":
             try:
@@ -775,10 +792,10 @@ class MainWidget(QtGui.QTreeWidget):
                 self.datasets = cPickle.load(f)
 
                 for tif_dir, dataset in self.datasets.items():
-                     self.emit(QtCore.SIGNAL('newKey(PyQt_PyObject)'), tif_dir)
-                     self.active_dataset = dataset
-                     self.emit(QtCore.SIGNAL('activeDatasetChanged(PyQt_PyObject)'), self.active_dataset)
-                     self.emit(QtCore.SIGNAL('activeDatasetEvaluated(PyQt_PyObject)'), self.active_dataset)
+                    self.newKey.emit(tif_dir)
+                    self.active_dataset = dataset
+                    self.activeDatasetChanged.emit(self.active_dataset)
+                    self.activeDatasetEvaluated.emit(self.active_dataset)
                 f.close()
 
             except Exception, detail:
@@ -815,13 +832,13 @@ class MainWidget(QtGui.QTreeWidget):
 
                     # update plots
                     self.active_dataset = d
-                    self.emit(QtCore.SIGNAL('activeDatasetChanged(PyQt_PyObject)'), self.active_dataset)
+                    self.activeDatasetChanged.emit(self.active_dataset)
 
                     self.active_dataset.update_radius_offset(values["radius_offset"])
                     self.active_dataset.evaluate()
         
                     # update eval
-                    self.emit(QtCore.SIGNAL('activeDatasetEvaluated(PyQt_PyObject)'), self.active_dataset)
+                    self.activeDatasetEvaluated.emit(self.active_dataset)
 
                 except Exception, detail:
                     print "problem encountered when when analyzing", key
@@ -992,7 +1009,7 @@ class Dataset(object):
 
     def update_radius_offset(self, offset):
         """
-        update threshold
+        update radius offset
         """
 
         print "update_radius_offset", offset, type(offset)
